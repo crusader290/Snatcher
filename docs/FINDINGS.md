@@ -226,3 +226,9 @@ in the [LP Archive walkthrough](https://lparchive.org/Snatcher-(Screenshot)/Upda
 At about frame 42,000 the Chief's office is on screen. Its menu is EXIT, LOOK,
 INVESTIGATE, ASK. With the cursor on EXIT, steady taps make Mika repeat that
 the Chief has not finished, so the next stretch needs ASK.
+
+A self-service build along this route (`--budget 10000000000`, input script
+from `route.py routes/act1-chief.route`) finished in six rounds (59 minutes)
+with `budget_exhausted` and no typed stop. The lobby close-up, the tour and
+the Chief's office need no images beyond the 87 that file-first admission
+already binds.
