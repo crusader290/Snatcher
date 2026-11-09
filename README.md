@@ -8,12 +8,12 @@ The original Main 68000, Sub 68000 and Z80 programs are translated ahead of
 time into guarded C. The runtime models the Sega CD hardware: buses, Word RAM,
 CDC/CDD, PCM, stamp graphics, VDP, FM/PSG audio and backup RAM.
 
-> **Status: bring-up.** segarecomp's Sega CD pipeline builds Snatcher from your
-> BIOS and CUE into a generated-native program with an SDL3 viewer. The program
-> runs about 57 million instructions (boot, the `SP` loader and the sub CPU's
-> `SUBCODE`) before it stops at the first `DATA_*` scene overlay it has not
-> compiled. mstan's engine probe boots past the licence screens into the intro
-> after a VDP interrupt-timing fix. Details are in
+> **Status: first playable scene.** segarecomp's Sega CD pipeline builds
+> Snatcher from your BIOS and CUE into a generated-native program with an SDL3
+> viewer. Driven by an input script, the program boots through the Konami logo,
+> the title and OPTIONS, plays the opening cinematic and credits, and reaches
+> the first scene: the Junker HQ lobby with its command menu and dialogue. A
+> 10-billion-instruction pass has no typed stop. Details are in
 > [docs/FINDINGS.md](docs/FINDINGS.md). The game is not playable end to end yet.
 
 ## You supply the inputs

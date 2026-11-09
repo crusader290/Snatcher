@@ -164,3 +164,27 @@ never fetched, so the transfer reads only `$23FFE2`–`$23FFFF`.
 [Patch 0005](../patches/segarecomp/0005-vdp-dma-word-ram-bound-on-read-words.patch)
 bounds the 2M branch by the words actually read. A transfer that truly
 crosses the window still stops.
+
+## 6. Through the intro to the first scene
+
+segarecomp refuses an input script over 64 KiB or 4,096 events as
+`input_refused too_large` before the first pass; `make_input_script.py` now
+checks both limits when it writes. C taps every 120 frames fit:
+
+```sh
+python tools/make_input_script.py work/input-story-long.txt   3400:3:START 3600:3:DOWN 3640:3:DOWN 3680:3:DOWN 3800:3:C every:4400:110000:120:6:C
+```
+
+With patches 0001 to 0005, the self-service build with `--budget 10000000000`
+finishes in six rounds with `budget_exhausted` and no typed stop. File-first
+admission binds 87 images (18,362 entry offsets). Replaying the program with
+`--capture-onset` (at most eight onsets per run) shows the following:
+
+| Frame | Screen |
+|---|---|
+| 20,000 | Opening credits over the city |
+| 35,000 | Junker HQ lobby: Mika's dialogue in the text window |
+| 50,000 to 130,000 | Junker HQ lobby, command menu (ENTER, LOOK, INVESTIGATE, TALK) |
+
+The repeated C taps keep choosing ENTER, which Mika refuses, so the scene
+loops. Going further needs a script that moves through the command menu.
