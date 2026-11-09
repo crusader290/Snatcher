@@ -1,0 +1,7 @@
+[submodule "external/segagenesisrecomp"]
+	path = external/segagenesisrecomp
+	url = https://github.com/mstan/segagenesisrecomp.git
+	branch = feature/segacd-backend
+[submodule "external/z80-frontend"]
+	path = external/z80-frontend
+	url = https://github.com/mstan/smsggrecomp.git

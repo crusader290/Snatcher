@@ -1,0 +1,62 @@
+diff --git a/runner/cd/machine.c b/runner/cd/machine.c
+index 68507bc..f39a715 100644
+--- a/runner/cd/machine.c
++++ b/runner/cd/machine.c
+@@ -211,12 +211,24 @@ static uint64_t sound_limit(void *u)
+     if(m->z80.in_step)return segacd_z80_bus_time(&m->z80);
+     return m->bus.z80_reset_off&&!m->bus.z80_busreq?m->z80.time:UINT64_MAX;
+ }
++/* The VDP raises its VBLANK status flag at the start of line 224 and asserts
++ * the level-6 interrupt 788 master clocks later. Original programs that poll
++ * `btst #3,$C00005` while a long VINT handler runs depend on that window. */
++#define SEGACD_VINT_DELAY_MCLK 788u
++static uint64_t vint_clock_for_line(uint64_t line)
++{
++    uint64_t master=line*3420u+SEGACD_VINT_DELAY_MCLK;
++    return master/53693175u*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u;
++}
+ static uint64_t next_host_event(void *u)
+-{return line_deadline(((SegaCDMachine*)u)->line);}
++{SegaCDMachine*m=u;uint64_t t=line_deadline(m->line);return m->vint_clock<t?m->vint_clock:t;}
+ static void host_advance(void *u,uint64_t clock)
+ {
+     SegaCDMachine*m=u;
+-    while(line_deadline(m->line)<=clock) {
++    for(;;) {
++        uint64_t line_at=line_deadline(m->line);
++        if(m->vint_clock<=clock&&m->vint_clock<=line_at){m->vint_clock=UINT64_MAX;m->irq6=1;continue;}
++        if(line_at>clock)break;
+         unsigned line=(unsigned)(m->line%262u);
+         if(m->line) {
+             unsigned row=(line+261u)%262u;
+@@ -255,7 +267,7 @@ static void host_advance(void *u,uint64_t clock)
+         }
+         if(!line&&m->line){++m->frames;m->height=(unsigned)gvdp_screen_height(&m->vdp);}
+         unsigned irq=gvdp_begin_scanline(&m->vdp,(int)line);
+-        if(irq&GVDP_IRQ_VBLANK){m->irq6=1;segacd_z80_irq(&m->z80);}
++        if(irq&GVDP_IRQ_VBLANK){m->vint_clock=vint_clock_for_line(m->line);segacd_z80_irq(&m->z80);}
+         if(irq&GVDP_IRQ_HBLANK)m->irq4=1;
+         ++m->line;
+     }
+@@ -267,7 +279,7 @@ int segacd_machine_init(SegaCDMachine *m,const void *bios,size_t bytes,
+     if(!m||!program||!bios||bytes!=SEGACD_BIOS_BYTES||current||!program->z80_step)return 0;
+     memset(m,0,sizeof *m);memset(g_rom,0,sizeof g_rom);memset(g_ram,0,sizeof g_ram);
+     g_rom_ext=NULL;g_rom_ext_size=0;g_snd_frame=0;g_audio_cycle_counter=g_68k_stamp_rebase=0;
+-    m->width=320;m->height=224;
++    m->width=320;m->height=224;m->vint_clock=UINT64_MAX;
+     if(!segacd_init(&m->devices,bios,bytes))return 0;
+     gvdp_init(&m->vdp);gbus_init(&m->bus,&m->vdp);
+     m->vdp.bus_read=dma_read;m->vdp.bus_read_user=m;
+diff --git a/runner/cd/machine.h b/runner/cd/machine.h
+index 0450ad5..12ad3f1 100644
+--- a/runner/cd/machine.h
++++ b/runner/cd/machine.h
+@@ -21,6 +21,8 @@ typedef struct {
+     uint64_t line,frames,bus_clock;
+     uint32_t pixels[GVDP_MAX_HEIGHT][GVDP_MAX_WIDTH];
+     unsigned width,height,irq4,irq6;
++    /* Sub-clock at which the delayed level-6 VINT asserts; UINT64_MAX when idle. */
++    uint64_t vint_clock;
+     M68kStepResult result;
+     uint8_t immutable_bios_qualified;
+     /* Emulation-thread host observers. They may queue output, never execute

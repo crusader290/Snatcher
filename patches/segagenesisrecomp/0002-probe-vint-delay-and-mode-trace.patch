@@ -1,0 +1,74 @@
+diff --git a/tests/segacd/bios_dual_probe.c b/tests/segacd/bios_dual_probe.c
+index 3414d22..95aae76 100644
+--- a/tests/segacd/bios_dual_probe.c
++++ b/tests/segacd/bios_dual_probe.c
+@@ -575,11 +575,28 @@ static uint64_t line_tick(uint64_t line)
+     uint64_t master=line*3420;
+     return (master/53693175u)*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u;
+ }
+-static uint64_t next_host_event(void*u){(void)u;return line_tick(line_number);}
++/* The VDP raises its VBLANK status flag at the start of line 224 but asserts
++ * the level-6 interrupt 788 master clocks later. Polling loops such as
++ * `btst #3,$C00005` rely on this window when a long VINT handler would
++ * otherwise consume the whole blanking period. */
++#define PROBE_VINT_DELAY_MCLK 788u
++static uint64_t pending_vint_tick=UINT64_MAX;
++static uint64_t master_tick(uint64_t master)
++{ return (master/53693175u)*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u; }
++static uint64_t next_host_event(void*u){(void)u;uint64_t t=line_tick(line_number);return pending_vint_tick<t?pending_vint_tick:t;}
+ static void advance_host(void*u,uint64_t now)
+ {
+     (void)u;
+-    while(line_tick(line_number)<=now) {
++    for(;;) {
++        uint64_t line_at=line_tick(line_number);
++        if(pending_vint_tick<=now&&pending_vint_tick<=line_at) {
++            pending_vint_tick=UINT64_MAX;irq6=1;
++#ifdef SEGACD_BIOS_PROBE_NATIVE_Z80
++            segacd_z80_irq(&sound_cpu);
++#endif
++            continue;
++        }
++        if(line_at>now)break;
+         unsigned line=(unsigned)(line_number%262);
+         if(!line) {
+             uint64_t frame=line_number/262;
+@@ -614,11 +631,7 @@ static void advance_host(void*u,uint64_t now)
+             }
+         }
+         unsigned interrupts=gvdp_begin_scanline(&vdp,(int)line);
+-        if(interrupts&GVDP_IRQ_VBLANK){irq6=1;
+-#ifdef SEGACD_BIOS_PROBE_NATIVE_Z80
+-            segacd_z80_irq(&sound_cpu);
+-#endif
+-        }
++        if(interrupts&GVDP_IRQ_VBLANK)pending_vint_tick=master_tick(line_number*3420u+PROBE_VINT_DELAY_MCLK);
+         if(interrupts&GVDP_IRQ_HBLANK)irq4=1;
+         g_snd_frame=(unsigned long)(line_number/262);++line_number;
+     }
+@@ -769,6 +782,9 @@ int main(int argc,char**argv)
+             vector_step.floor_before[0]=floor_before[0];vector_step.floor_before[1]=floor_before[1];
+         }
+         uint16_t fader_before=cd.drive.fader;uint64_t fader_deadline_before=cd.drive.fader_deadline;
++        static int trace_mode=-1;static unsigned trace_lines=0;
++        if(trace_mode<0)trace_mode=getenv("SEGACD_PROBE_TRACE_MODE")&&!strcmp(getenv("SEGACD_PROBE_TRACE_MODE"),"1");
++        uint8_t trace_mm=cd.memory_mode,trace_f0=cd.flags[0],trace_f1=cd.flags[1],trace_pend=cd.irq_pending;
+ #ifdef SEGACD_BIOS_PROBE_NATIVE_Z80
+         if(genesis.z80_reset_pending){segacd_z80_reset(&sound_cpu);genesis.z80_reset_pending=0;}
+         if(!genesis.z80_reset_off||genesis.z80_busreq) {
+@@ -785,6 +801,15 @@ int main(int argc,char**argv)
+         status=segacd_coordinator_step(&coordinator);
+ #endif
+         ++steps;
++        static uint64_t trace_after=UINT64_MAX;if(trace_after==UINT64_MAX)trace_after=getenv("SEGACD_PROBE_TRACE_AFTER")?strtoull(getenv("SEGACD_PROBE_TRACE_AFTER"),NULL,0):0;
++        if(trace_mode>0&&trace_lines<4000&&coordinator.device_time>=trace_after&&(trace_mm!=cd.memory_mode||trace_f0!=cd.flags[0]||trace_f1!=cd.flags[1])) {
++            ++trace_lines;
++            printf("TRACE t=%llu frame=%llu cpu=%u main=%06X sub=%06X sr=%04X/%04X mode=%02X->%02X flags=%02X/%02X->%02X/%02X pend=%02X->%02X\n",
++                (unsigned long long)coordinator.device_time,(unsigned long long)(line_number/262u),coordinator.last_cpu,
++                coordinator.cpu[0].state.instruction_pc&0xFFFFFFu,coordinator.cpu[1].state.instruction_pc&0xFFFFFFu,
++                coordinator.cpu[0].state.regs.SR,coordinator.cpu[1].state.regs.SR,
++                trace_mm,cd.memory_mode,trace_f0,trace_f1,cd.flags[0],cd.flags[1],trace_pend,cd.irq_pending);
++        }
+         if(capture_sub_vector_changes) {
+             vector_step.time_after=coordinator.device_time;
+             vector_step.frame_after=(uint32_t)(line_number/262u);

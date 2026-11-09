@@ -1,0 +1,8 @@
+# Owned inputs and everything derived from them stay private.
+Rom/
+work/
+build/
+*.sgcd
+*.bin
+*.iso
+__pycache__/
