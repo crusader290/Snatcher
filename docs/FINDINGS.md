@@ -30,6 +30,33 @@ previous timing. The same model is in the diagnostic probe (patch 0002).
 **Result.** The probe proceeds through the intro: 1,823 sectors read and 719
 CDDA sectors played in the same window. No game-specific code was added.
 
+The fix uses 788 master clocks in H40 and 770 in H32, selected from VDP
+register 12. segarecomp's VDP model (`SCD_VINT_H40_MCLK` / `SCD_VINT_H32_MCLK`)
+uses the same values independently.
+
 ## 2. Program inventory
 
 See [PROGRAM_INVENTORY.md](PROGRAM_INVENTORY.md).
+
+## 3. segarecomp self-service build of Snatcher
+
+[segarecomp](https://github.com/marinocg/segarecomp) (`external/segarecomp`)
+builds with MSYS2 MinGW after
+[patch 0001](../patches/segarecomp/0001-mingw-gnu-ld-stack-reservation.patch):
+GNU ld spells the 8 MiB stack reservation `--stack`, not `/STACK:`.
+
+| Build | Stop | What it showed |
+|---|---|---|
+| no backup RAM | `backup_ram_unsupported` (sub) | segarecomp requires a backup RAM image; any access without one is a typed stop |
+| `--backup-ram` blank (`0xFF`) | `cdc_destination_unsupported` (sub `$7598`, destination 5) | the boot `SP` loads `SUBCODE.BIN` to PRG RAM `$D400` by CDC DMA, which segarecomp did not implement |
+| + [patch 0002](../patches/segarecomp/0002-cdc-dma-to-prg-and-pcm-ram.patch) (CDC DMA to PRG and PCM RAM) | `entry_not_compiled` (main `$FFE100` → `$FFE290`) | `SUBCODE` is now admitted from the disc (sub `$CC00`–`$1A3FF`) and runs native |
+
+Patch 0002 gives destinations 5 (PRG RAM, register × 8, honours write protect,
+notes overlay writes) and 4 (PCM wave bank, register × 4, low byte at even
+address) writers on segarecomp's existing DMA timing and transfer-end
+interrupt. The address semantics match the engine's ares-derived `dma.c`.
+
+The main-CPU stop is code copied from the tail of the system-area `SP`, disc
+user-data offsets `$7B00`–`$7FFF`, into main RAM `$FFE100`–`$FFE5FF` through
+Word RAM (`$37800`). Extent discovery does not trace that indirect path, so the
+span is admitted explicitly with `--disc-image main:31488:16769280:1280`.

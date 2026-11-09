@@ -1,17 +1,16 @@
 diff --git a/tests/segacd/bios_dual_probe.c b/tests/segacd/bios_dual_probe.c
-index 3414d22..95aae76 100644
+index 3414d22..c581ba5 100644
 --- a/tests/segacd/bios_dual_probe.c
 +++ b/tests/segacd/bios_dual_probe.c
-@@ -575,11 +575,28 @@ static uint64_t line_tick(uint64_t line)
+@@ -575,11 +575,27 @@ static uint64_t line_tick(uint64_t line)
      uint64_t master=line*3420;
      return (master/53693175u)*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u;
  }
 -static uint64_t next_host_event(void*u){(void)u;return line_tick(line_number);}
 +/* The VDP raises its VBLANK status flag at the start of line 224 but asserts
-+ * the level-6 interrupt 788 master clocks later. Polling loops such as
++ * the level-6 interrupt 788 (H40) / 770 (H32) master clocks later. Loops such as
 + * `btst #3,$C00005` rely on this window when a long VINT handler would
 + * otherwise consume the whole blanking period. */
-+#define PROBE_VINT_DELAY_MCLK 788u
 +static uint64_t pending_vint_tick=UINT64_MAX;
 +static uint64_t master_tick(uint64_t master)
 +{ return (master/53693175u)*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u; }
@@ -33,7 +32,7 @@ index 3414d22..95aae76 100644
          unsigned line=(unsigned)(line_number%262);
          if(!line) {
              uint64_t frame=line_number/262;
-@@ -614,11 +631,7 @@ static void advance_host(void*u,uint64_t now)
+@@ -614,11 +630,7 @@ static void advance_host(void*u,uint64_t now)
              }
          }
          unsigned interrupts=gvdp_begin_scanline(&vdp,(int)line);
@@ -42,11 +41,11 @@ index 3414d22..95aae76 100644
 -            segacd_z80_irq(&sound_cpu);
 -#endif
 -        }
-+        if(interrupts&GVDP_IRQ_VBLANK)pending_vint_tick=master_tick(line_number*3420u+PROBE_VINT_DELAY_MCLK);
++        if(interrupts&GVDP_IRQ_VBLANK)pending_vint_tick=master_tick(line_number*3420u+((vdp.reg[12]&1u)?788u:770u));
          if(interrupts&GVDP_IRQ_HBLANK)irq4=1;
          g_snd_frame=(unsigned long)(line_number/262);++line_number;
      }
-@@ -769,6 +782,9 @@ int main(int argc,char**argv)
+@@ -769,6 +781,9 @@ int main(int argc,char**argv)
              vector_step.floor_before[0]=floor_before[0];vector_step.floor_before[1]=floor_before[1];
          }
          uint16_t fader_before=cd.drive.fader;uint64_t fader_deadline_before=cd.drive.fader_deadline;
@@ -56,7 +55,7 @@ index 3414d22..95aae76 100644
  #ifdef SEGACD_BIOS_PROBE_NATIVE_Z80
          if(genesis.z80_reset_pending){segacd_z80_reset(&sound_cpu);genesis.z80_reset_pending=0;}
          if(!genesis.z80_reset_off||genesis.z80_busreq) {
-@@ -785,6 +801,15 @@ int main(int argc,char**argv)
+@@ -785,6 +800,15 @@ int main(int argc,char**argv)
          status=segacd_coordinator_step(&coordinator);
  #endif
          ++steps;

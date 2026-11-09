@@ -30,7 +30,8 @@ from them (extracted files, captures, generated C) is ever committed.
 external/segagenesisrecomp   pinned engine (mstan, feature/segacd-backend @ a5d5007)
   └─ external/m68k-recomp-core, external/z80-recomp-core  (pinned by the engine)
 external/z80-frontend        pinned SmsRecomp Z80 frontend (smsggrecomp @ 224d5bb)
-patches/segagenesisrecomp    local engine fixes, applied to the pinned submodule
+external/segarecomp          pinned segarecomp (marinocg @ 8fa9f66): second, generic Sega CD pipeline
+patches/<submodule>/         local fixes, applied to the pinned submodules by tools/apply_patches.py
 tools/                       Snatcher-owned tooling (disc reader, locators, viewers)
 docs/                        program inventory and bring-up findings
 work/, build/, Rom/          private, ignored: owned inputs and everything derived
@@ -92,14 +93,19 @@ python tools/locate_files.py work/extract work/probe/run > work/located.json
   [smsggrecomp](https://github.com/mstan/smsggrecomp) and the reference
   integration [SonicCDRecomp](https://github.com/mstan/SonicCDRecomp), which
   this project follows.
+- **marinocg**: [segarecomp](https://github.com/marinocg/segarecomp) (MPL-2.0),
+  whose generic Sega CD build (extent discovery, file-first AOT) is used as a
+  second pipeline and as a cross-check. Its VDP model independently uses the
+  same 788/770 master-clock VINT delay this project patched into the engine.
 - **ares team / Near and contributors**: Sega CD device algorithms adapted by
   the engine (ISC).
 - **ymfm** by Aaron Giles (BSD-3-Clause), **SDL2** (zlib).
 
 ## Licensing
 
-The engine, CPU cores and frontend are submodules under their own licenses,
-mostly PolyForm Noncommercial 1.0.0. The files under `patches/segagenesisrecomp`
-modify that engine and therefore fall under its terms. Snatcher and its assets
+The engine, CPU cores and frontend are submodules under their own licenses:
+segagenesisrecomp and its cores use PolyForm Noncommercial 1.0.0, and segarecomp
+uses MPL-2.0. Each file under `patches/<submodule>` modifies that submodule and
+falls under its terms. Snatcher and its assets
 belong to Konami; this is an unofficial, noncommercial fan project and grants
 no rights to the game, its BIOS or any trademarks.

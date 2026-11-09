@@ -1,0 +1,90 @@
+diff --git a/platforms/sega-cd/runtime/scd_cd.c b/platforms/sega-cd/runtime/scd_cd.c
+index ed0fd73..e7be6dc 100644
+--- a/platforms/sega-cd/runtime/scd_cd.c
++++ b/platforms/sega-cd/runtime/scd_cd.c
+@@ -44,8 +44,47 @@ static uint32_t scd_bank_offset(uint32_t bank, uint32_t offset) { return (offset
+ /* Move `length` bytes (whole words; an odd last byte is not transferred) from the CDC buffer to the latched destination. A
+  * destination of the other Word RAM mode than the current one is not the live memory (GPGX keeps separate 2M and bank buffers and
+  * copies only on a mode switch): those writes are lost. */
++/* Destination 5 (PRG RAM): word writes at (register x 8), honouring the write protect like a sub write; the register advances one unit
++ * per 8 bytes. Destination 4 (PCM RAM): the current wave bank at (register x 4) & $FFF; each CDC word stores its second byte at the even
++ * and its first byte at the odd address; the register advances one unit per 4 bytes. (ares mcd cdc-transfer, GPGX cdc.c semantics.) */
++static void scd_cdc_dma_move_prg_pcm(ScdMachine *m, uint32_t words) {
++  uint32_t src = m->cdc.dac & 0x3FFEU, i;
++  if (m->cdc.dma_target == SCD_DMA_TARGET_PRG) {
++    uint32_t dst = ((uint32_t)m->cdc.dma_address << 3) & (SCD_PRG_RAM_BYTES - 1U) & ~1U;
++    const uint32_t protect = (uint32_t)m->ga.write_protect * UINT32_C(0x200);
++    m->cdc.dma_address = (uint16_t)(m->cdc.dma_address + (words >> 2));
++    for (i = 0; i < words; ++i) {
++      if (dst < protect) {
++        ++m->prg_write_protect_drops;
++      } else {
++        m->prg_ram[dst] = m->cdc.buffer[src];
++        m->prg_ram[dst + 1U] = m->cdc.buffer[src + 1U];
++        SCD_OVERLAY_NOTE_WRITE(m, SCD_MEMORY_PRG, dst, 2U);
++      }
++      src = (src + 2U) & 0x3FFEU;
++      dst = (dst + 2U) & (SCD_PRG_RAM_BYTES - 1U);
++    }
++  } else {
++    const uint32_t bank = ((uint32_t)m->pcm.bank & 0x0FU) << 12;
++    uint32_t dst = ((uint32_t)m->cdc.dma_address << 2) & 0x0FFEU;
++    m->cdc.dma_address = (uint16_t)(m->cdc.dma_address + (words >> 1));
++    for (i = 0; i < words; ++i) {
++      m->pcm.ram[bank | dst] = m->cdc.buffer[src + 1U];
++      m->pcm.ram[bank | (dst + 1U)] = m->cdc.buffer[src];
++      src = (src + 2U) & 0x3FFEU;
++      dst = (dst + 2U) & 0x0FFEU;
++    }
++  }
++  m->cdc.dac = (uint16_t)(m->cdc.dac + (words << 1));
++  m->cdc.dma_done += words << 1;
++}
++
+ static void scd_cdc_dma_move(ScdMachine *m, uint32_t length) {
+   const uint32_t words = length >> 1;
++  if (m->cdc.dma_target == SCD_DMA_TARGET_PRG || m->cdc.dma_target == SCD_DMA_TARGET_PCM) {
++    scd_cdc_dma_move_prg_pcm(m, words);
++    return;
++  }
+   const int to_2m = m->cdc.dma_target == SCD_DMA_TARGET_2M;
+   const uint32_t mask = to_2m ? 0x3FFFEU : 0x1FFFEU;
+   const int live = to_2m == !(m->ga.mode & SCD_MODE_1M);
+@@ -141,6 +180,7 @@ int scd_cd_observe(ScdMachine *m) {
+ 
+ /* Select the writer of a started transfer (GPGX cdc_dma_init): no effect unless a transfer is started (DTEN asserted). */
+ static int scd_cdc_dma_init(ScdMachine *m, uint32_t pc) {
++  (void)pc; /* every destination now has a writer; kept for the caller's stop contract */
+   if (m->cdc.ifstat & SCD_IFSTAT_DTEN) return 0;
+   m->cdc.dma_state = SCD_DMA_NONE;
+   switch (m->cdc.destination) {
+@@ -149,9 +189,14 @@ static int scd_cdc_dma_init(ScdMachine *m, uint32_t pc) {
+     m->cdc.dsr = 1U;
+     scd_cdc_host_fetch(m);
+     break;
+-  case 4: /* PCM RAM */
++  case 4: /* PCM RAM: the bank selected at the start of the transfer */
++    m->cdc.dma_target = SCD_DMA_TARGET_PCM;
++    m->cdc.dma_state = SCD_DMA_RUNNING;
++    break;
+   case 5: /* PRG RAM */
+-    return scd_fail(m, SCD_SUB, SCD_STOP_CDC_DESTINATION_UNSUPPORTED, pc, m->cdc.destination);
++    m->cdc.dma_target = SCD_DMA_TARGET_PRG;
++    m->cdc.dma_state = SCD_DMA_RUNNING;
++    break;
+   case 7:
+     if (m->ga.mode & SCD_MODE_1M) {
+       m->cdc.dma_target = (m->ga.mode & SCD_MODE_RET) ? SCD_DMA_TARGET_BANK0 : SCD_DMA_TARGET_BANK1; /* the sub's bank */
+diff --git a/platforms/sega-cd/runtime/scd_runtime.h b/platforms/sega-cd/runtime/scd_runtime.h
+index ee929da..6093390 100644
+--- a/platforms/sega-cd/runtime/scd_runtime.h
++++ b/platforms/sega-cd/runtime/scd_runtime.h
+@@ -452,6 +452,8 @@ typedef struct ScdGateArray {
+ #define SCD_DMA_TARGET_2M 1U
+ #define SCD_DMA_TARGET_BANK0 2U
+ #define SCD_DMA_TARGET_BANK1 3U
++#define SCD_DMA_TARGET_PRG 4U   /* destination 5: sub PRG RAM, address register in units of 8 bytes */
++#define SCD_DMA_TARGET_PCM 5U   /* destination 4: the selected 4 KiB PCM wave bank, address register in units of 4 bytes */
+ 
+ typedef struct ScdCdc {
+   uint8_t address;          /* $FF8005 */

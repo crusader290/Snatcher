@@ -1,5 +1,5 @@
 diff --git a/runner/cd/machine.c b/runner/cd/machine.c
-index 68507bc..f39a715 100644
+index 68507bc..69e576f 100644
 --- a/runner/cd/machine.c
 +++ b/runner/cd/machine.c
 @@ -211,12 +211,24 @@ static uint64_t sound_limit(void *u)
@@ -7,12 +7,12 @@ index 68507bc..f39a715 100644
      return m->bus.z80_reset_off&&!m->bus.z80_busreq?m->z80.time:UINT64_MAX;
  }
 +/* The VDP raises its VBLANK status flag at the start of line 224 and asserts
-+ * the level-6 interrupt 788 master clocks later. Original programs that poll
-+ * `btst #3,$C00005` while a long VINT handler runs depend on that window. */
-+#define SEGACD_VINT_DELAY_MCLK 788u
-+static uint64_t vint_clock_for_line(uint64_t line)
++ * the level-6 interrupt 788 (H40) / 770 (H32) master clocks later. Original
++ * programs that poll `btst #3,$C00005` while a long VINT handler runs depend
++ * on that window. */
++static uint64_t vint_clock_for_line(const GVDP *vdp,uint64_t line)
 +{
-+    uint64_t master=line*3420u+SEGACD_VINT_DELAY_MCLK;
++    uint64_t master=line*3420u+((vdp->reg[12]&1u)?788u:770u);
 +    return master/53693175u*12500000u+((master%53693175u)*12500000u+53693174u)/53693175u;
 +}
  static uint64_t next_host_event(void *u)
@@ -34,7 +34,7 @@ index 68507bc..f39a715 100644
          if(!line&&m->line){++m->frames;m->height=(unsigned)gvdp_screen_height(&m->vdp);}
          unsigned irq=gvdp_begin_scanline(&m->vdp,(int)line);
 -        if(irq&GVDP_IRQ_VBLANK){m->irq6=1;segacd_z80_irq(&m->z80);}
-+        if(irq&GVDP_IRQ_VBLANK){m->vint_clock=vint_clock_for_line(m->line);segacd_z80_irq(&m->z80);}
++        if(irq&GVDP_IRQ_VBLANK){m->vint_clock=vint_clock_for_line(&m->vdp,m->line);segacd_z80_irq(&m->z80);}
          if(irq&GVDP_IRQ_HBLANK)m->irq4=1;
          ++m->line;
      }

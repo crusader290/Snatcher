@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9c77a6c..2d20614 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,6 +13,9 @@ if(WIN32)
+   # Windows default is 1 MiB. Match the POSIX reservation for every executable.
+   if(MSVC)
+     add_link_options(/STACK:8388608)
++  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
++    # MinGW GCC links with GNU ld, which spells the reservation differently.
++    add_link_options(-Wl,--stack,8388608)
+   else()
+     add_link_options(-Wl,/STACK:8388608)
+   endif()
