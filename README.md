@@ -8,11 +8,13 @@ The original Main 68000, Sub 68000 and Z80 programs are translated ahead of
 time into guarded C. The runtime models the Sega CD hardware: buses, Word RAM,
 CDC/CDD, PCM, stamp graphics, VDP, FM/PSG audio and backup RAM.
 
-> **Status: bring-up.** The disc is fully inventoried, the engine is pinned and
-> builds with MinGW, and the diagnostic probe boots Snatcher past the licence
-> screens into its intro after a VDP interrupt-timing fix (see
-> [docs/FINDINGS.md](docs/FINDINGS.md)). Native catalog generation and a
-> playable `Snatcher` executable are not done yet.
+> **Status: bring-up.** segarecomp's Sega CD pipeline builds Snatcher from your
+> BIOS and CUE into a generated-native program with an SDL3 viewer. The program
+> runs about 57 million instructions (boot, the `SP` loader and the sub CPU's
+> `SUBCODE`) before it stops at the first `DATA_*` scene overlay it has not
+> compiled. mstan's engine probe boots past the licence screens into the intro
+> after a VDP interrupt-timing fix. Details are in
+> [docs/FINDINGS.md](docs/FINDINGS.md). The game is not playable end to end yet.
 
 ## You supply the inputs
 
@@ -39,8 +41,8 @@ work/, build/, Rom/          private, ignored: owned inputs and everything deriv
 
 ## Bring-up so far
 
-Requirements: Git, Python 3.10+, and MSYS2 MinGW-w64 (`gcc`, `cmake`, `ninja`,
-`SDL2`) on Windows. Keep `build/` and `work/` off `C:`; the engine tools refuse
+Requirements: Git, Python 3.10+, and MSYS2 with the UCRT64 toolchain plus `SDL3`
+(mingw64 `cmake`/`ninja` work as build drivers) on Windows. Keep `build/` and `work/` off `C:`; the engine tools refuse
 generated data there.
 
 ```sh

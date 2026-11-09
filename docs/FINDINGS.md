@@ -50,6 +50,8 @@ GNU ld spells the 8 MiB stack reservation `--stack`, not `/STACK:`.
 | no backup RAM | `backup_ram_unsupported` (sub) | segarecomp requires a backup RAM image; any access without one is a typed stop |
 | `--backup-ram` blank (`0xFF`) | `cdc_destination_unsupported` (sub `$7598`, destination 5) | the boot `SP` loads `SUBCODE.BIN` to PRG RAM `$D400` by CDC DMA, which segarecomp did not implement |
 | + [patch 0002](../patches/segarecomp/0002-cdc-dma-to-prg-and-pcm-ram.patch) (CDC DMA to PRG and PCM RAM) | `entry_not_compiled` (main `$FFE100` → `$FFE290`) | `SUBCODE` is now admitted from the disc (sub `$CC00`–`$1A3FF`) and runs native |
+| + SP-tail extent, developer driver (no main Z80) | `main_device_unsupported` (main `$FF5832` reads `$A04000`) | 27 M instructions; Snatcher's main CPU reads the YM2612 status port directly, which needs segarecomp's attached Z80 and FM devices |
+| + self-service build, main Z80 + YM2612/PSG, SDL3 viewer | `entry_not_compiled` (sub `$E16E` → `$285CE`) | 56.7 M instructions and a playable `program-viewer`; the next frontier is the `DATA_*` overlays at `$28000` |
 
 Patch 0002 gives destinations 5 (PRG RAM, register × 8, honours write protect,
 notes overlay writes) and 4 (PCM wave bank, register × 4, low byte at even
@@ -60,3 +62,24 @@ The main-CPU stop is code copied from the tail of the system-area `SP`, disc
 user-data offsets `$7B00`–`$7FFF`, into main RAM `$FFE100`–`$FFE5FF` through
 Word RAM (`$37800`). Extent discovery does not trace that indirect path, so the
 span is admitted explicitly with `--disc-image main:31488:16769280:1280`.
+
+### Toolchain notes
+
+- Build segarecomp and the generated programs with MSYS2 **UCRT64**
+  (`C:/msys64/ucrt64/bin/gcc.exe`). The mingw64 (msvcrt) C runtime lacks
+  C11 `timespec_get`, which the viewer uses. Do not mix a mingw64-built
+  segarecomp CLI with UCRT64 DLLs on PATH; it fails to start (exit 127).
+- SDL3 for the viewer: `pacman -S mingw-w64-ucrt-x86_64-sdl3`, then
+  `--viewer 1 --sdl3-include C:/msys64/ucrt64/include --sdl3-lib C:/msys64/ucrt64/lib`.
+- GCC links need `--link-arg -Wl,--stack,8388608`
+  ([patch 0003](../patches/segarecomp/0003-mingw-gcc-program-builds.patch)
+  limits the MSVC-only `#pragma comment` to MSVC/clang and adds the flag to
+  the developer driver).
+- Admit the SP-tail main code with
+  `--emit-arg --disc-image --emit-arg main:31488:16769280:1280`.
+
+Current command (`work/` holds owned inputs and outputs, never committed):
+
+```sh
+segarecomp sega-cd build --cue "Rom/Snatcher (Sega CD).fixed.cue" --bios <bios>   --output work/scd-build --runtime-dir external/segarecomp   --cc C:/msys64/ucrt64/bin/gcc.exe --cxx C:/msys64/ucrt64/bin/g++.exe   --cache-dir work/scd-cache-ucrt --jobs 8 --backup-ram work/probe/blank-bram.bin   --budget 400000000 --link-arg -Wl,--stack,8388608   --emit-arg --disc-image --emit-arg main:31488:16769280:1280   --viewer 1 --sdl3-include C:/msys64/ucrt64/include --sdl3-lib C:/msys64/ucrt64/lib
+```
