@@ -1,0 +1,17 @@
+diff --git a/platforms/sega-cd/runtime/scd_vdp.c b/platforms/sega-cd/runtime/scd_vdp.c
+index dd02040..92948f0 100644
+--- a/platforms/sega-cd/runtime/scd_vdp.c
++++ b/platforms/sega-cd/runtime/scd_vdp.c
+@@ -245,8 +245,10 @@ static int scd_vdp_dma_prepare(ScdMachine *m, GenesisRuntime *host, uint16_t fir
+   host->owned_region_count = 1U;
+   if (source >= UINT32_C(0x00FF0000) && end <= UINT32_C(0x01000000)) {
+     memcpy(host->work_ram, m->work_ram, sizeof host->work_ram);
+-  } else if (source >= UINT32_C(0x00200000) && end <= UINT32_C(0x00200000) + SCD_WORD_RAM_BYTES && !(m->ga.mode & SCD_MODE_1M) &&
+-             (m->ga.mode & SCD_MODE_RET)) {
++  } else if (source >= UINT32_C(0x00200000) && source + 2U * (length - 1U) <= UINT32_C(0x00200000) + SCD_WORD_RAM_BYTES &&
++             !(m->ga.mode & SCD_MODE_1M) && (m->ga.mode & SCD_MODE_RET)) {
++    /* The bound is on the words actually read: with the one-cycle source delay the last source word is never fetched, so a transfer
++     * whose final word would be the first beyond the window reads only Word RAM (Snatcher: 16 words from $23FFE2). */
+     /* SEG-064-T004: 2M Word RAM owned by main is plain memory for the bus (GPGX reads it through the ordinary word-RAM map); a graphics
+      * operation or CDC transfer in flight is brought up to this instant first. */
+     if (scd_cd_observe(m) != 0) return 1;

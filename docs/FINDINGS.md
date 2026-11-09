@@ -136,3 +136,31 @@ models exactly that, in the 2M and 1M branches. It sets the length counter to 0,
 moves the source one word, rewrites the command address and clears the
 command's DMA bit, so the VDP only latches the address. Subtracting one would
 be wrong: a length of 0 means 65,536 words on this VDP.
+
+### Getting from the title into a new game
+
+On the title (about frame 3000) neither A nor C starts a game, and Start
+opens OPTIONS. Inside OPTIONS, Down moves the cursor. GUN ADJUST is skipped
+with "joypad only", so QUIT is three Downs away, and C on QUIT starts a new
+game; the opening disclaimer appears at about frame 4300. The pad model is
+fine: Start and A, and C and the directions, each work in their own read phase.
+
+```sh
+python tools/make_input_script.py work/input-story.txt \
+  3400:3:START 3600:3:DOWN 3640:3:DOWN 3680:3:DOWN 3800:3:C every:4400:60000:90:6:C
+```
+
+The trailing C taps advance the opening text so a build pass covers the first
+chapter's code.
+
+### Word RAM DMA ending exactly at the window edge
+
+Following that route, the build ran 870 M instructions and bound three
+`DATA_*` scene overlays at `$28000` before the same DMA routine
+(`$FF1AB6`) stopped. It was a 16-word transfer from `$23FFE2` in 2M mode,
+owned by main. segarecomp bounded the range by the full length
+(`$240002`), but with the one-cycle source delay the last source word is
+never fetched, so the transfer reads only `$23FFE2`–`$23FFFF`.
+[Patch 0005](../patches/segarecomp/0005-vdp-dma-word-ram-bound-on-read-words.patch)
+bounds the 2M branch by the words actually read. A transfer that truly
+crosses the window still stops.
