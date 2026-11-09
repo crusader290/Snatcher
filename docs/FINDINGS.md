@@ -114,3 +114,25 @@ every BIOS-derived file, it stays in ignored local storage.
 
 `tools/canon2png.py` converts segarecomp's `--capture-dir` frames
 (`canon_<onset>.bin`) to PNG for checking.
+
+## 5. Title screen, input scripts and the one-word Word RAM DMA
+
+With the BIOS-formatted backup RAM, the file-first build boots natively through
+the Konami logo to Snatcher's title screen (NEW GAME menu, about 50 s) and
+waits there for input.
+
+`tools/make_input_script.py` writes segarecomp input scripts from frame-based
+presses. One NTSC frame is 262 × 3420 master clocks × 500,000 ticks. Example:
+`make_input_script.py work/input-title.txt 3100:8:START every:3300:12000:90:6:A`
+presses Start on the title, then taps A every 90 frames.
+
+Pressing Start stopped the game with `vdp_dma_unsupported` (main `$FF1AB6`): a
+VDP DMA of length 1 from 2M Word RAM `$23A002`, owned by main. The Word RAM
+source arrives one bus cycle late, so a one-word transfer leaves only the stale
+bus word, which is not written. The destination advances by the
+auto-increment and the transfer ends.
+[Patch 0004](../patches/segarecomp/0004-vdp-dma-single-word-from-word-ram.patch)
+models exactly that, in the 2M and 1M branches. It sets the length counter to 0,
+moves the source one word, rewrites the command address and clears the
+command's DMA bit, so the VDP only latches the address. Subtracting one would
+be wrong: a length of 0 means 65,536 words on this VDP.

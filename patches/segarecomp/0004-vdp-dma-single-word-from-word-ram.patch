@@ -1,0 +1,50 @@
+diff --git a/platforms/sega-cd/runtime/scd_vdp.c b/platforms/sega-cd/runtime/scd_vdp.c
+index 1aefaf8..dd02040 100644
+--- a/platforms/sega-cd/runtime/scd_vdp.c
++++ b/platforms/sega-cd/runtime/scd_vdp.c
+@@ -220,6 +220,18 @@ static uint64_t scd_vdp_dma_end(const ScdMachine *m, const GenesisRuntime *host,
+   return frame_start + (frames * frame_lines * line + cyc) * SCD_MASTER_TICK_TICKS;
+ }
+ 
++/* A one-word DMA from Word RAM: the source data arrives one bus cycle late, so only the stale bus word is left and it is not written
++ * (GPGX writes nothing); the destination still advances by the auto-increment and the transfer ends. The length counter reads 0 and the
++ * source address has moved one word, as after any transfer. The caller rewrites the command's address and clears its DMA bit (lag 2). */
++static void scd_vdp_dma_word_ram_single(uint16_t *r, uint32_t *word_ram_lag) {
++  const uint32_t low = (uint32_t)(r[21] & 0xFFU) + 1U;
++  r[19] = 0U;
++  r[20] = 0U;
++  r[21] = (uint16_t)(low & 0xFFU);
++  if (low > 0xFFU) r[22] = (uint16_t)((r[22] + 1U) & 0xFFU);
++  *word_ram_lag = 2U;
++}
++
+ static int scd_vdp_dma_prepare(ScdMachine *m, GenesisRuntime *host, uint16_t first, uint16_t second, uint32_t pc, uint32_t *word_ram_lag) {
+   uint16_t *r = host->devices.vdp.registers;
+   uint32_t length, source, end;
+@@ -243,7 +255,7 @@ static int scd_vdp_dma_prepare(ScdMachine *m, GenesisRuntime *host, uint16_t fir
+      * word the VDP writes is the stale word on the bus (GPGX writes nothing), the destination address advances by the auto-increment,
+      * the source words follow, and the last source word is ignored: dma_length-- and addr += reg15. A one-word transfer has no
+      * source word left and is not modelled. */
+-    if (length == 1U) return scd_fail(m, SCD_MAIN, SCD_STOP_VDP_DMA_UNSUPPORTED, pc, source);
++    if (length == 1U) { scd_vdp_dma_word_ram_single(r, word_ram_lag); return 0; }
+     *word_ram_lag = 1U;
+     length -= 1U;
+     r[19] = (uint16_t)(length & 0xFFU);
+@@ -256,7 +268,7 @@ static int scd_vdp_dma_prepare(ScdMachine *m, GenesisRuntime *host, uint16_t fir
+      * image and the mirrors stay outside this branch (typed stop below). */
+     ScdVdpHost *const h = (ScdVdpHost *)host;
+     uint32_t i;
+-    if (length == 1U) return scd_fail(m, SCD_MAIN, SCD_STOP_VDP_DMA_UNSUPPORTED, pc, source); /* no source word left, as in 2M */
++    if (length == 1U) { scd_vdp_dma_word_ram_single(r, word_ram_lag); return 0; } /* no source word left, as in 2M */
+     if (scd_cd_observe(m) != 0) return 1;
+     length -= 1U;
+     for (i = 0U; i < length; ++i) {
+@@ -451,7 +463,7 @@ static int scd_vdp_access_inner(ScdMachine *m, uint32_t address, uint32_t width,
+         if (scd_vdp_dma_prepare(m, host, (uint16_t)first, (uint16_t)second, pc, &lag) != 0) return 1;
+         if (lag != 0U) { /* the destination advances past the skipped first word (the command's address, rewritten) */
+           const uint32_t addr = ((first & 0x3FFFU) | ((second & 3U) << 14)), moved = (addr + host->devices.vdp.registers[15]) & 0xFFFFU;
+-          const uint32_t nfirst = (first & 0xC000U) | (moved & 0x3FFFU), nsecond = (second & ~3U) | ((moved >> 14) & 3U);
++          const uint32_t nfirst = (first & 0xC000U) | (moved & 0x3FFFU), nsecond = ((second & ~3U) | ((moved >> 14) & 3U)) & (lag == 2U ? ~0x80U : ~0U);
+           if (width == 4U && awaiting) *value = (nsecond << 16) | (*value & 0xFFFFU);
+           else if (width == 4U) *value = (nfirst << 16) | nsecond;
+           else *value = nsecond;
