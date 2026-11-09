@@ -81,5 +81,36 @@ span is admitted explicitly with `--disc-image main:31488:16769280:1280`.
 Current command (`work/` holds owned inputs and outputs, never committed):
 
 ```sh
-segarecomp sega-cd build --cue "Rom/Snatcher (Sega CD).fixed.cue" --bios <bios>   --output work/scd-build --runtime-dir external/segarecomp   --cc C:/msys64/ucrt64/bin/gcc.exe --cxx C:/msys64/ucrt64/bin/g++.exe   --cache-dir work/scd-cache-ucrt --jobs 8 --backup-ram work/probe/blank-bram.bin   --budget 400000000 --link-arg -Wl,--stack,8388608   --emit-arg --disc-image --emit-arg main:31488:16769280:1280   --viewer 1 --sdl3-include C:/msys64/ucrt64/include --sdl3-lib C:/msys64/ucrt64/lib
+segarecomp sega-cd build --cue "Rom/Snatcher (Sega CD).fixed.cue" --bios <bios> \
+  --output work/scd-build --runtime-dir external/segarecomp \
+  --cc C:/msys64/ucrt64/bin/gcc.exe --cxx C:/msys64/ucrt64/bin/g++.exe \
+  --cache-dir work/scd-cache-ucrt --jobs 8 --backup-ram work/probe/blank-bram.bin \
+  --budget 400000000 --link-arg -Wl,--stack,8388608 \
+  --emit-arg --disc-image --emit-arg main:31488:16769280:1280 \
+  --viewer 1 --sdl3-include C:/msys64/ucrt64/include --sdl3-lib C:/msys64/ucrt64/lib
 ```
+
+## 4. A formatted backup RAM image, made by the BIOS
+
+With the `0xFF` image, the file-first build runs its whole 400 M-instruction
+budget with no typed stop: the Konami logo renders natively at about 30 s.
+At about 60 s Snatcher shows its "initialise the memory first" screen, because
+the internal backup RAM is unformatted. segarecomp expects a *formatted* empty
+image, so the BIOS formats one in the diagnostic probe (no disc mounted, from
+the blank image). The pad script drives the v1.10 control panel:
+panel → Down → Right (OPTION) → C → any button → Up (FORMAT, built-in) → C →
+Left (YES) → C.
+
+```sh
+SEGACD_PROBE_BRAM_IMAGE=work/probe/blank-bram.bin SEGACD_PROBE_PAD_EVENTS_OVERRIDE_START=1 \
+SEGACD_PROBE_PAD_EVENTS="1400:2:0x20,1500:2:0x2,1540:2:0x8,1580:2:0x20,1700:2:0x20,1800:2:0x1,1840:2:0x20,1900:2:0x4,1940:2:0x20" \
+  build/tools/segacd_bios_floor_probe <bios> 460000000 work/probe/bram-format
+cp work/probe/bram-format/backup-ram.bin work/probe/formatted-bram.bin
+```
+
+Only the 64-byte directory header at the end of RAM changes; it ends in
+`SEGA_CD_ROM` … `RAM_CARTRIDGE___`. Pass the result as `--backup-ram`. Like
+every BIOS-derived file, it stays in ignored local storage.
+
+`tools/canon2png.py` converts segarecomp's `--capture-dir` frames
+(`canon_<onset>.bin`) to PNG for checking.
