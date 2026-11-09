@@ -27,6 +27,31 @@ from them (extracted files, captures, generated C) is ever committed.
 | Sega CD BIOS | US Model 1 v1.10, 131,072 bytes, SHA-256 `807384678ef259494d943eddb6954dfc7069693d0dde0c424e2028488d88e81a` |
 | Snatcher disc | US CUE/BIN: one MODE1/2352 data track and 20 audio tracks |
 
+## Build and play (Windows)
+
+```bat
+git clone https://github.com/crusader290/Snatcher.git
+cd Snatcher
+build.bat "path	o\Snatcher (Sega CD).cue" "path	o\Sega CD BIOS (US v1.10).bin"
+play.bat
+```
+
+`build.bat` fetches everything it needs:
+- Git, Python and MSYS2 through winget, if they are missing.
+- The MSYS2 UCRT64 `gcc`, `cmake`, `ninja` and `SDL3` packages.
+- The pinned submodules, with the local patches applied.
+
+It then builds the segarecomp CLI and checks the BIOS SHA-256. It fixes a CUE
+whose `FILE` line lacks `.bin`, writes a formatted backup RAM, and compiles the
+game along [routes/act1-chief.route](routes/act1-chief.route) into
+`work\game`. That last step takes about an hour on a cold cache. Run it with
+no arguments to stop after the dependencies.
+
+`play.bat` starts the SDL3 viewer. Controls: arrows, Z/X/C for A/B/C, Return
+for Start, Esc for the menu. Saves are kept in `work\saveackup-ram.bin`.
+Code the build pass never reached still stops the program with a typed stop,
+so play coverage grows with the route.
+
 ## Layout
 
 ```
@@ -35,12 +60,14 @@ external/segagenesisrecomp   pinned engine (mstan, feature/segacd-backend @ a5d5
 external/z80-frontend        pinned SmsRecomp Z80 frontend (smsggrecomp @ 224d5bb)
 external/segarecomp          pinned segarecomp (marinocg @ 8fa9f66): second, generic Sega CD pipeline
 patches/<submodule>/         local fixes, applied to the pinned submodules by tools/apply_patches.py
-tools/                       Snatcher-owned tooling (disc reader, locators, viewers)
+tools/                       Snatcher-owned tooling (disc reader, routes, captures, BRAM, CUE fix)
+routes/                      input routes that drive the build pass through the game
+build.bat, play.bat          one-step Windows build and launcher
 docs/                        program inventory and bring-up findings
 work/, build/, Rom/          private, ignored: owned inputs and everything derived
 ```
 
-## Bring-up so far
+## Manual bring-up (engine probe)
 
 Requirements: Git, Python 3.10+, and MSYS2 with the UCRT64 toolchain plus `SDL3`
 (mingw64 `cmake`/`ninja` work as build drivers) on Windows. Keep `build/` and `work/` off `C:`; the engine tools refuse
