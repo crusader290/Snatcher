@@ -6,3 +6,5 @@ build/
 *.bin
 *.iso
 __pycache__/
+Snatcher.log
+Snatcher.log.1

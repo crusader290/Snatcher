@@ -22,24 +22,30 @@ set "UCRT=%MSYS2_ROOT%\ucrt64"
 set "CUE=%~f1"
 set "BIOS=%~f2"
 
+set "STAGE=1/6 host tools"
 echo == [1/6] Host tools: Git, Python 3.10+, MSYS2
 where git >nul 2>nul || call :winget Git.Git Git || goto :fail
 call :find_python || goto :fail
+call :log build "build.bat start"
 if not exist "%MSYS2_ROOT%\usr\bin\bash.exe" call :winget MSYS2.MSYS2 MSYS2 || goto :fail
 if not exist "%MSYS2_ROOT%\usr\bin\bash.exe" (echo MSYS2 not found at %MSYS2_ROOT%; set MSYS2_ROOT to its folder.& goto :fail)
 
+set "STAGE=2/6 MSYS2 packages"
 echo == [2/6] MSYS2 UCRT64 packages: gcc, cmake, ninja, SDL3
 "%MSYS2_ROOT%\usr\bin\bash.exe" -lc "pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-sdl3"
 if errorlevel 1 (echo pacman failed. Update MSYS2 once with: %MSYS2_ROOT%\usr\bin\bash.exe -lc "pacman -Syu" & goto :fail)
 set "PATH=%UCRT%\bin;%PATH%"
 
+set "STAGE=3/6 submodules"
 echo == [3/6] Submodules
 git submodule update --init external/segagenesisrecomp external/z80-frontend external/segarecomp || goto :fail
 git -C external/segagenesisrecomp submodule update --init external/m68k-recomp-core external/z80-recomp-core || goto :fail
 
+set "STAGE=4/6 patches"
 echo == [4/6] Local patches
 "%PY%" tools\apply_patches.py || goto :fail
 
+set "STAGE=5/6 segarecomp CLI"
 echo == [5/6] segarecomp CLI
 if not exist build\segarecomp-ucrt\CMakeCache.txt (
   cmake -S external/segarecomp -B build/segarecomp-ucrt -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ || goto :fail
@@ -52,9 +58,11 @@ if "%~2"=="" (
   echo.
   echo Dependencies are ready. To compile the game, run:
   echo   build.bat "path\to\Snatcher.cue" "path\to\US v1.10 Sega CD BIOS.bin"
+  call :log build "build.bat done: dependencies ready"
   exit /b 0
 )
 
+set "STAGE=6/6 compile Snatcher"
 echo == [6/6] Compile Snatcher
 if not exist "%CUE%" (echo CUE not found: "%CUE%"& goto :fail)
 if not exist "%BIOS%" (echo BIOS not found: "%BIOS%"& goto :fail)
@@ -69,7 +77,7 @@ if not exist work\save mkdir work\save
 "%PY%" tools\make_bram.py work\bram-formatted.bin || goto :fail
 "%PY%" tools\route.py "%SNATCHER_ROUTE%" work\input-route.txt || goto :fail
 
-"%SEGARECOMP%" sega-cd build --cue "%CUE_FIXED%" --bios "%BIOS%" --output work\game --runtime-dir external\segarecomp ^
+"%PY%" tools\watchdog.py --plain --label build --kill-seconds 0 -- "%SEGARECOMP%" sega-cd build --cue "%CUE_FIXED%" --bios "%BIOS%" --output work\game --runtime-dir external\segarecomp ^
   --cc "%UCRT%\bin\gcc.exe" --cxx "%UCRT%\bin\g++.exe" --cache-dir work\cache --jobs %SNATCHER_JOBS% ^
   --backup-ram work\bram-formatted.bin --input-script work\input-route.txt --budget %SNATCHER_BUDGET% --pass-timeout 14400 ^
   --link-arg -Wl,--stack,8388608 --emit-arg --disc-image --emit-arg main:31488:16769280:1280 --file-first structural ^
@@ -80,6 +88,8 @@ copy /y "%UCRT%\bin\SDL3.dll" work\game\ >nul || goto :fail
 rem play.bat reads these
 > work\play-config.bat echo set "BIOS=%BIOS%"
 >> work\play-config.bat echo set "DISC_DIR=%DISC_DIR%"
+>> work\play-config.bat echo set "PY=%PY%"
+call :log build "build.bat done: work\game\program-viewer.exe"
 echo.
 echo Built work\game\program-viewer.exe. Run play.bat to play.
 exit /b 0
@@ -94,6 +104,10 @@ call :winget Python.Python.3.12 Python || exit /b 1
 echo Python was installed; open a new terminal so it is on PATH, then run build.bat again.
 exit /b 1
 
+:log
+if defined PY "%PY%" tools\watchdog.py --note %1 %2 >nul
+exit /b 0
+
 :winget
 echo %2 is missing; installing it with winget (%1)...
 where winget >nul 2>nul || (echo winget is not available; install %2 yourself and re-run.& exit /b 1)
@@ -102,5 +116,7 @@ exit /b 0
 
 :fail
 echo.
-echo build.bat failed.
+echo build.bat failed at stage %STAGE%. Details are in Snatcher.log.
+call :log error "build.bat failed at stage %STAGE%"
+if "%STAGE%"=="6/6 compile Snatcher" if exist work\game\status.json "%PY%" -c "import json,subprocess,sys;s=json.load(open('work/game/status.json'));m='segarecomp status %%s, result %%s, stop %%s'%%(s.get('status'),s.get('result'),s.get('stop'));subprocess.run([sys.executable,'tools/watchdog.py','--note','error',m])"
 exit /b 1

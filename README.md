@@ -52,6 +52,31 @@ for Start, Esc for the menu. Saves are kept in `work\saveackup-ram.bin`.
 Code the build pass never reached still stops the program with a typed stop,
 so play coverage grows with the route.
 
+## Crashes, stops and hangs: Snatcher.log
+
+`play.bat` runs the game under [tools/watchdog.py](tools/watchdog.py), and
+`build.bat` logs its stages through it. Everything goes to `Snatcher.log` in
+the repo folder. The log is ignored by git, and it rotates to `Snatcher.log.1`
+at 5 MiB.
+
+| Log level | Meaning |
+|---|---|
+| `INFO` | Session start (program hash and build time, repo commit, command) and a clean quit |
+| `PROG` | The viewer's own output (SDL and controller diagnostics, runtime notes) |
+| `STOP` | Exit 10, a typed stop: the game reached code this build did not compile. Logs the stop class, the CPU and PC, and both CPUs' state |
+| `CRASH` | A Windows exception (access violation, stack overflow, missing DLL, ...), with the last program output |
+| `HANG` | The window stopped responding for 20 s. A minidump is written; after 5 minutes the watchdog ends the process |
+| `ERROR` | Any other failure: disc or backup RAM refused, SDL host failure, a build stage, an outside kill |
+| `BUILD` | `build.bat` start, finish and failing stage |
+
+Each problem keeps a folder `work\logs\<label>-<kind>-<time>\` with the
+viewer's exit report (`report.json`), its full output (`stderr.txt`) and, for
+hangs, `hang.dmp`. Set `SNATCHER_RECORD=1` before `play.bat` to also record the
+pad input (`input.txt`). A break can then be replayed headlessly with
+`program.exe --input-script`. segarecomp ends a recorded session at 4,096
+input events, so recording is off by default. When something breaks, the
+`Snatcher.log` lines and the incident folder are what to attach.
+
 ## Layout
 
 ```
@@ -60,7 +85,7 @@ external/segagenesisrecomp   pinned engine (mstan, feature/segacd-backend @ a5d5
 external/z80-frontend        pinned SmsRecomp Z80 frontend (smsggrecomp @ 224d5bb)
 external/segarecomp          pinned segarecomp (marinocg @ 8fa9f66): second, generic Sega CD pipeline
 patches/<submodule>/         local fixes, applied to the pinned submodules by tools/apply_patches.py
-tools/                       Snatcher-owned tooling (disc reader, routes, captures, BRAM, CUE fix)
+tools/                       Snatcher-owned tooling (disc reader, routes, captures, BRAM, CUE fix, watchdog)
 routes/                      input routes that drive the build pass through the game
 build.bat, play.bat          one-step Windows build and launcher
 docs/                        program inventory and bring-up findings
