@@ -13,7 +13,8 @@ CDC/CDD, PCM, stamp graphics, VDP, FM/PSG audio and backup RAM.
 > viewer. Driven by an input script, the program boots through the Konami logo,
 > the title and OPTIONS, plays the opening cinematic and credits, and reaches
 > the first scene: the Junker HQ lobby with its command menu and dialogue. A
-> 10-billion-instruction pass has no typed stop. Details are in
+> scripted route ([routes/](routes/)) gets Gillian through the lobby and into
+> the Chief's office. A 10-billion-instruction pass has no typed stop. Details are in
 > [docs/FINDINGS.md](docs/FINDINGS.md). The game is not playable end to end yet.
 
 ## You supply the inputs

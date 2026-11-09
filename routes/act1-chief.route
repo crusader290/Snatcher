@@ -1,0 +1,29 @@
+# Snatcher (US Sega CD) Act 1: title -> new game -> Junker HQ lobby -> Mika lets Gillian in -> Chief's office.
+at 3400:3:START            # title: Start opens OPTIONS
+at 3600:3:DOWN
+at 3640:3:DOWN
+at 3680:3:DOWN             # QUIT (GUN ADJUST is skipped without a gun)
+at 3800:3:C                # new game
+every 4400:28000:120:6:C   # opening text; the intro cinematic runs to about frame 31500
+at 32100:4:C               # Mika's greeting
+at 32400:4:C               # lobby ENTER (first time): Mika asks for ID, TALK appears
+every 32700:34000:150:4:C  # her questions
+at 34200:3:UP              # lobby cursor ENTER -> TALK (wraps)
+at 34350:4:C               # TALK: close-up of Mika; its menu is ready by 35400
+clock 35500                # close-up menu LOOK / INVESTIGATE / TALK / ASK, cursor LOOK
+nav DOWN DOWN DOWN         # ASK
+sel
+nav DOWN DOWN              # ABOUT MIKA (1st: 4 pages)
+sel
+text 4
+sel                        # cursor stays on ASK
+nav DOWN DOWN              # ABOUT MIKA (2nd: 2 pages)
+sel
+text 2
+sel
+sel                        # ABOUT JUNKERS (3 pages): ENTER now heads the menu, cursor index 3 = TALK
+text 3
+nav UP UP UP               # ENTER
+sel
+text 8                     # Mika opens the doors; the 6th tap picks CHIEF'S OFFICE on her tour menu
+every 41640:90000:220:4:C  # the Chief's briefing

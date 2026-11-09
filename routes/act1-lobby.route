@@ -1,0 +1,13 @@
+# Snatcher (US Sega CD) Act 1 opening: title -> OPTIONS -> new game -> Junker HQ lobby.
+at 3400:3:START            # title: Start opens OPTIONS
+at 3600:3:DOWN
+at 3640:3:DOWN
+at 3680:3:DOWN             # QUIT (GUN ADJUST is skipped without a gun)
+at 3800:3:C                # new game
+every 4400:28000:120:6:C   # opening text; the intro cinematic runs to about frame 31500
+at 32100:4:C               # Mika's greeting
+at 32400:4:C               # lobby ENTER (first time): Mika asks for ID, TALK appears
+every 32700:34000:150:4:C  # her questions
+at 34200:3:UP              # lobby cursor ENTER -> TALK (wraps)
+at 34350:4:C               # TALK: close-up of Mika; its menu is ready by 35400
+clock 35500                # close-up menu LOOK / INVESTIGATE / TALK / ASK, cursor LOOK

@@ -188,3 +188,41 @@ admission binds 87 images (18,362 entry offsets). Replaying the program with
 
 The repeated C taps keep choosing ENTER, which Mika refuses, so the scene
 loops. Going further needs a script that moves through the command menu.
+
+## 7. A scripted route through the Junker HQ lobby
+
+The game advances text only on C (A and B do nothing), and C on a menu
+reselects the highlighted item. So a blind stream of C taps loops on whatever
+the cursor is on. In the lobby that is ENTER, which Mika refuses forever. A
+route therefore needs the exact number of text pages for each action.
+
+- `tools/route.py` compiles a route file into an input script. Its steps are
+  `nav` (cursor moves), `sel` (C on the item), `text N` (one C per page) and
+  `measure N`. `measure N` also prints a capture onset just before each tap.
+- A probe replays the built program with `--until-tick` and those onsets. It
+  reaches the lobby in about 3 minutes, so several probes run in parallel.
+- `tools/canon_sheet.py` tiles the captures into one PNG. The capture just
+  before each tap shows whether the game still waits on text or is back at
+  the menu.
+
+Menu behaviour that matters for routing:
+- The top-level cursor keeps its index, and items can be inserted above it.
+- A submenu's cursor starts at the top again.
+- The cursor wraps at both ends.
+
+The lobby route
+([routes/act1-chief.route](../routes/act1-chief.route)) follows the order
+in the [LP Archive walkthrough](https://lparchive.org/Snatcher-(Screenshot)/Update%202/):
+
+| Step | Pages |
+|---|---|
+| Lobby ENTER (Mika asks for ID; TALK appears) | timed taps |
+| Lobby TALK (close-up; menu ready at about frame 35,400) | none |
+| ASK about Mika, first time | 4 |
+| ASK about Mika, second time | 2 |
+| ASK about Junkers (adds ENTER at the top of the close-up menu) | 3 |
+| ENTER (Mika opens the doors, then shows the tour menu) | the 6th tap picks CHIEF'S OFFICE |
+
+At about frame 42,000 the Chief's office is on screen. Its menu is EXIT, LOOK,
+INVESTIGATE, ASK. With the cursor on EXIT, steady taps make Mika repeat that
+the Chief has not finished, so the next stretch needs ASK.
