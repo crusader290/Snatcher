@@ -8,7 +8,7 @@ rem Options (environment variables):
 rem   MSYS2_ROOT       MSYS2 install folder (default C:\msys64; installed with winget if missing)
 rem   SNATCHER_BUDGET  build-pass instruction budget (default 10000000000)
 rem   SNATCHER_JOBS    parallel compile jobs (default: number of processors)
-rem   SNATCHER_ROUTE   input route that drives the build pass (default routes\act1-chief.route)
+rem   SNATCHER_ROUTE   input route that drives the build pass (default routes\act1-detective.route)
 rem
 rem Nothing from the game or the BIOS is copied into the repository; everything derived goes to work\.
 setlocal EnableExtensions
@@ -17,7 +17,7 @@ cd /d "%~dp0"
 if "%MSYS2_ROOT%"=="" set "MSYS2_ROOT=C:\msys64"
 if "%SNATCHER_BUDGET%"=="" set "SNATCHER_BUDGET=10000000000"
 if "%SNATCHER_JOBS%"=="" set "SNATCHER_JOBS=%NUMBER_OF_PROCESSORS%"
-if "%SNATCHER_ROUTE%"=="" set "SNATCHER_ROUTE=routes\act1-chief.route"
+if "%SNATCHER_ROUTE%"=="" set "SNATCHER_ROUTE=routes\act1-detective.route"
 set "UCRT=%MSYS2_ROOT%\ucrt64"
 set "CUE=%~f1"
 set "BIOS=%~f2"

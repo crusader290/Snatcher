@@ -270,3 +270,9 @@ topic list starts at the top again.
 | ASK about Katrina | 1; no event follows |
 | EXIT, then the tour menu: DETECTIVE'S ROOM | 1 page each |
 | Detective's Room tour | 3; menu EXIT, LOOK, ASK, POSSESSIONS |
+
+A build pass driven along this route (with C taps continuing to frame 100000)
+ran clean: 6 rounds, ending only when the instruction budget ran out
+(`budget_exhausted`, no typed stop). Rounds 1 to 4 picked up new code in the
+Engineering Room and Detective's Room scenes (`entry_not_compiled`, then
+`code_bytes_mismatch` as overlays loaded), and round 5 needed no more.

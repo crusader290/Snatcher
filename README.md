@@ -43,7 +43,7 @@ play.bat
 
 It then builds the segarecomp CLI and checks the BIOS SHA-256. It fixes a CUE
 whose `FILE` line lacks `.bin`, writes a formatted backup RAM, and compiles the
-game along [routes/act1-chief.route](routes/act1-chief.route) into
+game along [routes/act1-detective.route](routes/act1-detective.route) into
 `work\game`. That last step takes about an hour on a cold cache. Run it with
 no arguments to stop after the dependencies.
 
