@@ -255,3 +255,18 @@ playing. After the ID scene, cursor moves are dropped for about 300 frames,
 so the route waits 400 frames there. Asking a topic again opens an ASK AGAIN
 / ABOUT OTHER prompt and repeats the answer, so the route asks each topic
 once.
+
+### Engineering Room and Detective's Room
+
+[routes/act1-detective.route](../routes/act1-detective.route) continues from
+the Engineering Room. In each room the top-level cursor stays on ASK, and the
+topic list starts at the top again.
+
+| Step | Pages |
+|---|---|
+| ASK about Harry, four times (a new answer each time; later asks repeat) | 1 each |
+| ASK about Navigators | 1 |
+| ASK about Gibson (adds ABOUT KATRINA) | 2 |
+| ASK about Katrina | 1; no event follows |
+| EXIT, then the tour menu: DETECTIVE'S ROOM | 1 page each |
+| Detective's Room tour | 3; menu EXIT, LOOK, ASK, POSSESSIONS |
