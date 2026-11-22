@@ -232,3 +232,26 @@ from `route.py routes/act1-chief.route`) finished in six rounds (59 minutes)
 with `budget_exhausted` and no typed stop. The lobby close-up, the tour and
 the Chief's office need no images beyond the 87 that file-first admission
 already binds.
+
+### The Chief's office and the Junker ID
+
+[routes/act1-engineering.route](../routes/act1-engineering.route) continues
+the lobby route.
+
+| Step | Pages |
+|---|---|
+| The Chief's voiced briefing (portraits, no text) | 10 timed taps; then his menu: EXIT, LOOK, INVESTIGATE, ASK |
+| ASK about Junkers | 2 |
+| ASK about Junker authority | 7 |
+| ASK about Junker duties | 2 |
+| ASK about Junker staff | 2 |
+| ASK about Snatchers (all five asked: the voiced ID card scene) | 3 + 10 taps; POSSESSIONS and ABOUT NAVIGATORS appear |
+| ASK about Navigators | 1 |
+| EXIT, then Mika's tour menu: ENGINEERING ROOM | 1 page each |
+| Engineering Room: Harry is out | 2; menu EXIT, LOOK, ASK, POSSESSIONS |
+
+A menu can be drawn before it accepts input while a voice line is still
+playing. After the ID scene, cursor moves are dropped for about 300 frames,
+so the route waits 400 frames there. Asking a topic again opens an ASK AGAIN
+/ ABOUT OTHER prompt and repeats the answer, so the route asks each topic
+once.

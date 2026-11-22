@@ -1,0 +1,69 @@
+# Snatcher (US Sega CD) Act 1: title -> lobby -> Mika lets Gillian in -> Chief's office (five questions, Junker ID) -> Engineering Room.
+at 3400:3:START            # title: Start opens OPTIONS
+at 3600:3:DOWN
+at 3640:3:DOWN
+at 3680:3:DOWN             # QUIT (GUN ADJUST is skipped without a gun)
+at 3800:3:C                # new game
+every 4400:28000:120:6:C   # opening text; the intro cinematic runs to about frame 31500
+at 32100:4:C               # Mika's greeting
+at 32400:4:C               # lobby ENTER (first time): Mika asks for ID, TALK appears
+every 32700:34000:150:4:C  # her questions
+at 34200:3:UP              # lobby cursor ENTER -> TALK (wraps)
+at 34350:4:C               # TALK: close-up of Mika; its menu is ready by 35400
+clock 35500                # close-up menu LOOK / INVESTIGATE / TALK / ASK, cursor LOOK
+nav DOWN DOWN DOWN         # ASK
+sel
+nav DOWN DOWN              # ABOUT MIKA (1st: 4 pages)
+sel
+text 4
+sel                        # cursor stays on ASK
+nav DOWN DOWN              # ABOUT MIKA (2nd: 2 pages)
+sel
+text 2
+sel
+sel                        # ABOUT JUNKERS (3 pages): ENTER now heads the menu, cursor index 3 = TALK
+text 3
+nav UP UP UP               # ENTER
+sel
+text 8                     # Mika opens the doors; the 6th tap picks CHIEF'S OFFICE on her tour menu
+text 8                     # the Chief's voiced briefing (portraits, no text pages)
+text 2                     # his menu EXIT / LOOK / INVESTIGATE / ASK is up by about frame 44275, cursor EXIT
+nav DOWN DOWN DOWN         # ASK
+sel
+wait 200
+sel                        # ABOUT JUNKERS (2 pages)
+text 2
+sel                        # ASK
+wait 200
+nav DOWN                   # ABOUT JUNKER AUTHORITY (7 pages)
+sel
+text 7
+sel
+wait 200
+nav DOWN DOWN              # ABOUT JUNKER DUTIES (2 pages)
+sel
+text 2
+sel
+wait 200
+nav DOWN DOWN DOWN         # ABOUT JUNKER STAFF (2 pages)
+sel
+text 2
+sel
+wait 200
+nav DOWN DOWN DOWN DOWN    # ABOUT SNATCHERS (3 pages)
+sel
+text 2
+text 10                    # page 3, then the voiced ID card scene; POSSESSIONS joins the menu, cursor stays on ASK
+wait 400                   # the menu is drawn before it takes input (voice still playing)
+sel                        # ASK
+wait 200
+nav DOWN DOWN DOWN DOWN DOWN   # ABOUT NAVIGATORS (1 page)
+sel
+text 1
+wait 200
+nav UP UP UP               # EXIT
+sel
+text 1                     # Mika: where next?
+nav DOWN                   # ENGINEERING ROOM
+sel
+text 2                     # Engineering: Harry is out; menu EXIT / LOOK / ASK / POSSESSIONS, cursor EXIT
