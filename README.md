@@ -14,8 +14,9 @@ CDC/CDD, PCM, stamp graphics, VDP, FM/PSG audio and backup RAM.
 > the title and OPTIONS, plays the opening cinematic and credits, and reaches
 > the first scene: the Junker HQ lobby with its command menu and dialogue. A
 > scripted route ([routes/](routes/)) takes Gillian through Junker HQ, collects
-> Metal Gear and the blaster, and drives to the factory ruins and inside. Build
-> passes along the route have no typed stop. Details are in
+> Metal Gear and the blaster, drives to the factory ruins, and works through
+> Gibson's murder scene to the bomb in Little John. Build passes along the
+> route (so far into the factory) have no typed stop. Details are in
 > [docs/FINDINGS.md](docs/FINDINGS.md). The game is not playable end to end yet.
 
 ## You supply the inputs

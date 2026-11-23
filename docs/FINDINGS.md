@@ -344,6 +344,11 @@ applied, ending on the instruction budget with no typed stop.
 | INVESTIGATE SCRAP OF PAPER, then LOOK SCRAP OF PAPER | 1; 3 (Metal Gear stores it), then something runs across a doorway |
 | ADVANCE | 3 at the dead end; menu LOOK, INVESTIGATE, LISTEN, POSSESSIONS, USE METAL GEAR (no MOVE) |
 | LOOK FRONT | 1 (a cave-in); INVESTIGATE offers FRONT, DIRT AND SAND |
+| INVESTIGATE DIRT AND SAND, then FRONT twice | 3 (adds EXIT), 1, 1, then Metal Gear picks up a faint sound; RETREAT appears |
+| RETREAT | 1, then 3 in Gibson's corridor about the sound |
+| LISTEN | 1: it sounds like a timer |
+| RETREAT, RETREAT | 1 + 3 in the pipe room; 1 + 5 in the rubble room, the sound coming from Little John |
+| LOOK LITTLE JOHN | the time bomb (2 taps), then 3 pages |
 
 The gates in this stretch were hard to find by probing alone. The doorway
 event needs the key and the scrap of paper stored as evidence, and storing the
@@ -351,5 +356,7 @@ scrap needs INVESTIGATE before LOOK. The order came from the Let's Play
 Archive's screenshot LP of the Sega CD version, then each step was confirmed by
 replay.
 
-Inside the factory Metal Gear says the A button draws the blaster, so a
-shooting scene is near.
+The route ends at the bomb reveal, about frame 161700. Per the LP, MOVE >
+RETREAT next starts the first shooting scene: insect robots attack, A draws
+the blaster and C fires, with 35 hits needed. That needs aimed pad input
+rather than menu picks, so it is the next thing to work out.

@@ -1,4 +1,4 @@
-# Snatcher (US Sega CD) Act 1: title -> lobby -> Chief's office (Junker ID) -> Engineering -> Detective's Room -> Computer Room -> Shooting Range -> Harry (Metal Gear, blaster) -> Turbocycle -> factory ruins -> inside the factory -> Gibson -> the cave-in.
+# Snatcher (US Sega CD) Act 1: title -> lobby -> Chief's office (Junker ID) -> Engineering -> Detective's Room -> Computer Room -> Shooting Range -> Harry (Metal Gear, blaster) -> Turbocycle -> factory ruins -> inside the factory -> Gibson -> the cave-in -> the bomb in Little John.
 at 3400:3:START            # title: Start opens OPTIONS
 at 3600:3:DOWN
 at 3640:3:DOWN
@@ -357,3 +357,35 @@ tap 1                      # LOOK (FRONT)
 tap 1                      # FRONT
 tap 1                      # 1 page: blocked by a cave-in
 wait 220                   # menu, cursor LOOK; INVESTIGATE offers FRONT / DIRT AND SAND
+nav DOWN
+sel                        # INVESTIGATE (FRONT / DIRT AND SAND / MOTION DETECTOR)
+nav DOWN
+sel                        # DIRT AND SAND
+tap 17                     # 3 pages (adds EXIT); INVESTIGATE > FRONT twice (1 each); then Metal Gear picks up a
+                           # faint sound (several pages)
+wait 220                   # menu RETREAT / LOOK / INVESTIGATE / LISTEN / POSSESSIONS / USE METAL GEAR, cursor LOOK
+nav UP
+sel                        # RETREAT
+tap 4                      # 1 page, then 3 in Gibson's corridor (Metal Gear hears a faint sound)
+wait 220                   # menu, cursor MOVE
+nav DOWN DOWN DOWN
+sel                        # LISTEN
+tap 1                      # a sound like a timer
+wait 220
+nav UP UP UP
+sel                        # MOVE
+nav DOWN
+sel                        # RETREAT
+tap 4                      # 1 page, then 3 in the pipe room
+wait 220                   # menu, cursor MOVE
+sel                        # MOVE
+nav DOWN
+sel                        # RETREAT
+tap 6                      # 1 page, then 5 in the rubble room: the sound comes from Little John
+wait 220                   # menu, cursor MOVE
+nav DOWN
+sel                        # LOOK (CEILING / GROUND / AREA / LITTLE JOHN)
+nav DOWN DOWN DOWN
+sel                        # LITTLE JOHN: the time bomb
+tap 5                      # bomb cutscene (2 taps), then pages: save often; Gillian hasn't saved yet
+wait 220                   # menu, cursor LOOK. Next: MOVE > RETREAT starts the first shooting scene.
