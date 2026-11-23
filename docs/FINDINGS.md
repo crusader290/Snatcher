@@ -276,3 +276,64 @@ ran clean: 6 rounds, ending only when the instruction budget ran out
 (`budget_exhausted`, no typed stop). Rounds 1 to 4 picked up new code in the
 Engineering Room and Detective's Room scenes (`entry_not_compiled`, then
 `code_bytes_mismatch` as overlays loaded), and round 5 needed no more.
+
+### Junker HQ to the factory ruins
+
+[routes/act1-harry.route](../routes/act1-harry.route) carries on from the
+Detective's Room to the second room inside the factory ruins, about frame
+109900. Probing used the same replay-and-capture method. Two new habits of the
+game:
+
+- **Cutscenes with no text box.** Harry fetching Metal Gear, the blaster, the
+  turbocycle drive and the scream at the factory show portraits or animation
+  with no text window. The captures can't show whether C taps during them do
+  anything, so the route keeps the probed tap timing exactly. A new `tap N`
+  step (taps without the trailing wait) makes that possible: each new section
+  of the route compiles to an exact prefix of the probe input that found it.
+- **A menu pick can be a story gate.** Harry is only back once the Computer
+  Room and Shooting Range have been visited, and the factory door only opens
+  after every LOOK and INVESTIGATE item and a second videophone call. A
+  second call alone gives a short 1-page answer and opens nothing.
+
+| Step | Pages |
+|---|---|
+| Detective's Room LOOK: MIKA'S FACE, MONITOR, NEAR DESK, FAR DESK, AREA | 2, 2, 2, 1, 1; no event |
+| Detective's Room ASK: HARRY, NAVIGATORS, GIBSON, KATRINA | 1 each; no event |
+| EXIT, then the tour menu (cursor back on CHIEF'S OFFICE) | 1; CHIEF'S OFFICE, ENGINEERING ROOM, DETECTIVE'S ROOM, COMPUTER ROOM, SHOOTING RANGE |
+| ENGINEERING ROOM straight from the Detective's Room | Harry is still out |
+| COMPUTER ROOM | 2; menu EXIT, LOOK, ASK, POSSESSIONS |
+| SHOOTING RANGE | 1; menu EXIT, LOOK, ASK, PRACTICE, POSSESSIONS |
+| SHOOTING RANGE: PRACTICE | 7, then the target screen (Mika lends her raygun) |
+| ENGINEERING ROOM after both visits | 2, then Harry's scene (6 taps); menu LOOK, INVESTIGATE, ASK, POSSESSIONS (no EXIT) |
+| Harry ASK: ABOUT NAVIGATORS | Metal Gear cutscene (15 taps); the topic becomes ABOUT METAL GEAR |
+| ABOUT METAL GEAR | 12 (save, light, videophone) |
+| ABOUT BLASTER | blaster cutscene (12 taps) |
+| ABOUT SNATCHERS | 6, then an event with no input: a videophone call, then outside by the turbocycle |
+| Turbocycle menu | ENTER TURBOCYCLE, LOOK, INVESTIGATE, USE METAL GEAR |
+| ENTER TURBOCYCLE | 1; EXIT TURBOCYCLE (refused), FACTORY RUINS, GILLIAN'S HOME |
+| FACTORY RUINS | drive and arrival (12 taps), EXIT TURBOCYCLE, arrival page (3 taps) |
+| Factory menu | ENTER TURBOCYCLE (Gillian wants to leave; 2), LOOK, INVESTIGATE, POSSESSIONS, USE METAL GEAR |
+| LOOK: BUILDING, SKY, AREA | 1 each |
+| INVESTIGATE: BUILDING, AREA, MOTION DETECTOR | 1, 1, 2 |
+| USE METAL GEAR: VIDEOPHONE | 5 the first time, 4 the second, then the scream (9 taps) |
+| After the scream | ENTER replaces ENTER TURBOCYCLE |
+| ENTER | 3, the way in, 2 inside; menu MOVE, LOOK, INVESTIGATE, LISTEN, POSSESSIONS, USE METAL GEAR |
+| MOVE: ADVANCE | 1, then the next room (a figure in the rubble); MOVE offers ADVANCE, RETREAT |
+
+| ADVANCE, ADVANCE | 2, a corridor; 1, then a figure on the floor (no INVESTIGATE yet); one more ADVANCE is a dead end |
+| LOOK: BODY | close-up (2 taps), 2; INVESTIGATE appears |
+| INVESTIGATE: GIBSON, CORPSE | 3; again 1 (RIGHT HAND appears); a third time a portrait scene (6 taps) that adds ORGANIC COMPOUNDS; a fourth 1, and CORPSE drops out |
+| INVESTIGATE: GIBSON, CLOTHING | 1 (KEY); again 1 (SCRAP OF PAPER); a third time 1, nothing more |
+| INVESTIGATE: RIGHT HAND | 2; adds HAIR and SKIN SAMPLE |
+| ORGANIC COMPOUNDS, HAIR, SKIN SAMPLE | analyses on Metal Gear's screen with no text box: 8, 13, and 11 taps plus 1 page |
+| INVESTIGATE: KEY, SCRAP OF PAPER, MOTION DETECTOR | 1, 1, 2 |
+| LOOK: GROUND | 1; adds BLASTER |
+| LOOK: KEY | 3; Metal Gear stores it as evidence |
+| USE METAL GEAR after the analyses | VIDEOPHONE (still blocked), SAVE, REPORT ANALYSIS RESULTS |
+
+A build pass along the route as far as the second factory room, with C taps
+continuing to frame 120000, ran clean: 6 rounds, all 1,166 input events
+applied, ending on the instruction budget with no typed stop.
+
+Inside the factory Metal Gear says the A button draws the blaster, so a
+shooting scene is near.

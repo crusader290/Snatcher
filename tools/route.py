@@ -9,6 +9,7 @@ A route file holds one step per line (# starts a comment):
   nav KEY...                      cursor moves, NAV_GAP frames apart
   sel                             press C on the highlighted item, then wait SEL_WAIT
   text N                          N C taps, TEXT_GAP apart (one per text page), then wait TEXT_GAP
+  tap N                           N C taps like `text` without the closing wait (a menu pick inside a tap run)
   wait N                          advance the clock N frames
   measure N                       N taps like `text`, and print a capture onset just before each tap
 
@@ -47,13 +48,14 @@ def compile_route(lines):
         elif op == "sel":
             presses.append(f"{clock}:{TAP_DUR}:C")
             clock += SEL_WAIT
-        elif op in ("text", "measure"):
+        elif op in ("text", "measure", "tap"):
             for _ in range(int(args[0])):
                 clock += TEXT_GAP
                 if op == "measure":
                     onsets.append(clock - 5)
                 presses.append(f"{clock}:{TAP_DUR}:C")
-            clock += TEXT_GAP
+            if op != "tap":
+                clock += TEXT_GAP
         elif op == "wait":
             clock += int(args[0])
         else:

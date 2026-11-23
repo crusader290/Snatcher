@@ -13,8 +13,9 @@ CDC/CDD, PCM, stamp graphics, VDP, FM/PSG audio and backup RAM.
 > viewer. Driven by an input script, the program boots through the Konami logo,
 > the title and OPTIONS, plays the opening cinematic and credits, and reaches
 > the first scene: the Junker HQ lobby with its command menu and dialogue. A
-> scripted route ([routes/](routes/)) gets Gillian through the lobby and into
-> the Chief's office. A 10-billion-instruction pass has no typed stop. Details are in
+> scripted route ([routes/](routes/)) takes Gillian through Junker HQ, collects
+> Metal Gear and the blaster, and drives to the factory ruins and inside. Build
+> passes along the route have no typed stop. Details are in
 > [docs/FINDINGS.md](docs/FINDINGS.md). The game is not playable end to end yet.
 
 ## You supply the inputs
@@ -43,7 +44,7 @@ play.bat
 
 It then builds the segarecomp CLI and checks the BIOS SHA-256. It fixes a CUE
 whose `FILE` line lacks `.bin`, writes a formatted backup RAM, and compiles the
-game along [routes/act1-detective.route](routes/act1-detective.route) into
+game along [routes/act1-harry.route](routes/act1-harry.route) into
 `work\game`. That last step takes about an hour on a cold cache. Run it with
 no arguments to stop after the dependencies.
 

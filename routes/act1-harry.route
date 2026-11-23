@@ -1,0 +1,262 @@
+# Snatcher (US Sega CD) Act 1: title -> lobby -> Chief's office (Junker ID) -> Engineering -> Detective's Room -> Computer Room -> Shooting Range -> Harry (Metal Gear, blaster) -> Turbocycle -> factory ruins -> inside the factory.
+at 3400:3:START            # title: Start opens OPTIONS
+at 3600:3:DOWN
+at 3640:3:DOWN
+at 3680:3:DOWN             # QUIT (GUN ADJUST is skipped without a gun)
+at 3800:3:C                # new game
+every 4400:28000:120:6:C   # opening text; the intro cinematic runs to about frame 31500
+at 32100:4:C               # Mika's greeting
+at 32400:4:C               # lobby ENTER (first time): Mika asks for ID, TALK appears
+every 32700:34000:150:4:C  # her questions
+at 34200:3:UP              # lobby cursor ENTER -> TALK (wraps)
+at 34350:4:C               # TALK: close-up of Mika; its menu is ready by 35400
+clock 35500                # close-up menu LOOK / INVESTIGATE / TALK / ASK, cursor LOOK
+nav DOWN DOWN DOWN         # ASK
+sel
+nav DOWN DOWN              # ABOUT MIKA (1st: 4 pages)
+sel
+text 4
+sel                        # cursor stays on ASK
+nav DOWN DOWN              # ABOUT MIKA (2nd: 2 pages)
+sel
+text 2
+sel
+sel                        # ABOUT JUNKERS (3 pages): ENTER now heads the menu, cursor index 3 = TALK
+text 3
+nav UP UP UP               # ENTER
+sel
+text 8                     # Mika opens the doors; the 6th tap picks CHIEF'S OFFICE on her tour menu
+text 8                     # the Chief's voiced briefing (portraits, no text pages)
+text 2                     # his menu EXIT / LOOK / INVESTIGATE / ASK is up by about frame 44275, cursor EXIT
+nav DOWN DOWN DOWN         # ASK
+sel
+wait 200
+sel                        # ABOUT JUNKERS (2 pages)
+text 2
+sel                        # ASK
+wait 200
+nav DOWN                   # ABOUT JUNKER AUTHORITY (7 pages)
+sel
+text 7
+sel
+wait 200
+nav DOWN DOWN              # ABOUT JUNKER DUTIES (2 pages)
+sel
+text 2
+sel
+wait 200
+nav DOWN DOWN DOWN         # ABOUT JUNKER STAFF (2 pages)
+sel
+text 2
+sel
+wait 200
+nav DOWN DOWN DOWN DOWN    # ABOUT SNATCHERS (3 pages)
+sel
+text 2
+text 10                    # page 3, then the voiced ID card scene; POSSESSIONS joins the menu, cursor stays on ASK
+wait 400                   # the menu is drawn before it takes input (voice still playing)
+sel                        # ASK
+wait 200
+nav DOWN DOWN DOWN DOWN DOWN   # ABOUT NAVIGATORS (1 page)
+sel
+text 1
+wait 200
+nav UP UP UP               # EXIT
+sel
+text 1                     # Mika: where next?
+nav DOWN                   # ENGINEERING ROOM
+sel
+text 2                     # Engineering: Harry is out; menu EXIT / LOOK / ASK / POSSESSIONS, cursor EXIT
+wait 200
+nav DOWN DOWN              # ASK (cursor stays on ASK afterwards)
+sel
+wait 200
+sel                        # ABOUT HARRY (1st)
+text 1
+wait 200
+sel
+wait 200
+sel                        # ABOUT HARRY (2nd)
+text 1
+wait 200
+sel
+wait 200
+sel                        # ABOUT HARRY (3rd)
+text 1
+wait 200
+sel
+wait 200
+sel                        # ABOUT HARRY (4th; later asks repeat)
+text 1
+wait 200
+sel
+wait 200
+nav DOWN
+sel                        # ABOUT NAVIGATORS
+text 1
+wait 200
+sel
+wait 200
+nav DOWN DOWN
+sel                        # ABOUT GIBSON (adds ABOUT KATRINA)
+text 2
+wait 200
+sel
+wait 200
+nav DOWN DOWN DOWN
+sel                        # ABOUT KATRINA
+text 1
+wait 200
+nav UP UP                  # EXIT
+sel
+text 1                     # Mika: where next?
+nav DOWN DOWN              # DETECTIVE'S ROOM
+sel
+text 3                     # Detective's room tour; menu EXIT / LOOK / ASK / POSSESSIONS, cursor EXIT
+
+# Detective's Room -> Computer Room -> Shooting Range -> Engineering, where Harry is back
+# (going straight back to Engineering only gets "Harry's not back yet").
+wait 200
+sel                        # EXIT
+text 1                     # where next? (tour cursor back on CHIEF'S OFFICE)
+nav DOWN DOWN DOWN         # COMPUTER ROOM
+sel
+text 2                     # computer room intro; menu EXIT / LOOK / ASK / POSSESSIONS
+wait 200
+sel                        # EXIT
+text 1
+nav DOWN DOWN DOWN DOWN    # SHOOTING RANGE
+sel
+text 1                     # range intro; menu EXIT / LOOK / ASK / PRACTICE / POSSESSIONS
+wait 200
+sel                        # EXIT
+text 1
+nav DOWN                   # ENGINEERING ROOM
+sel
+text 6                     # Harry's back: 2 pages, then his scene; menu LOOK / INVESTIGATE / ASK / POSSESSIONS
+
+# Harry: ASK ABOUT NAVIGATORS. He fetches Metal Gear (a portrait cutscene with no text box: 15 taps keep the
+# probed timing), the menu returns on ASK, and the topic becomes ABOUT METAL GEAR.
+wait 200
+nav DOWN DOWN              # ASK (menu LOOK / INVESTIGATE / ASK / POSSESSIONS)
+sel
+sel                        # ABOUT NAVIGATORS
+tap 15                     # Metal Gear cutscene
+tap 1                      # ASK
+tap 1                      # ABOUT METAL GEAR
+text 12                    # its features: save, light, videophone; menu back on ASK
+sel                        # ASK
+nav DOWN
+sel                        # ABOUT BLASTER
+text 12                    # Harry hands over the blaster (cutscene, no text box); menu back on ASK
+sel                        # ASK
+nav DOWN DOWN
+sel                        # ABOUT SNATCHERS
+text 6
+# Event, no input needed: a videophone call on Metal Gear, then Gillian outside by the Turbocycle.
+clock 90000                # menu ENTER TURBOCYCLE / LOOK / INVESTIGATE / USE METAL GEAR, cursor on ENTER
+
+# Turbocycle to the factory ruins.
+sel                        # ENTER TURBOCYCLE
+text 1                     # Metal Gear: where to? Menu EXIT TURBOCYCLE / FACTORY RUINS / GILLIAN'S HOME (EXIT refuses)
+nav DOWN
+sel                        # FACTORY RUINS
+tap 12                     # drive cutscene, then the arrival page; menu EXIT TURBOCYCLE / JUNKER HQ / GILLIAN'S HOME
+tap 1                      # EXIT TURBOCYCLE: the abandoned factory
+text 3                     # arrival page (taps land while it types); menu ENTER TURBOCYCLE / LOOK / INVESTIGATE /
+                           # POSSESSIONS / USE METAL GEAR, cursor ENTER (which only gets Gillian wanting to go home)
+
+# Factory exterior: LOOK and INVESTIGATE everything, then the videophone twice; a scream opens ENTER.
+nav DOWN
+sel                        # LOOK
+sel                        # BUILDING
+text 1
+wait 200
+sel                        # LOOK
+nav DOWN
+sel                        # SKY
+text 1
+wait 200
+sel                        # LOOK
+nav DOWN DOWN
+sel                        # AREA
+text 1
+wait 200
+nav DOWN
+sel                        # INVESTIGATE
+sel                        # BUILDING
+text 1
+wait 200
+sel                        # INVESTIGATE
+nav DOWN
+sel                        # AREA
+text 1
+wait 200
+sel                        # INVESTIGATE
+nav DOWN DOWN
+sel                        # MOTION DETECTOR
+text 2
+wait 200
+nav DOWN DOWN
+sel                        # USE METAL GEAR
+sel                        # VIDEOPHONE
+text 5
+tap 1                      # USE METAL GEAR (cursor stayed there)
+tap 1                      # VIDEOPHONE again
+tap 4                      # 4 different pages this time
+text 9                     # a scream: voice and portraits, no text box; menu ENTER / LOOK / INVESTIGATE / POSSESSIONS /
+                           # USE METAL GEAR, cursor still on USE METAL GEAR
+
+# Into the factory.
+wait 200
+nav UP UP UP UP            # ENTER
+sel                        # ENTER
+tap 8                      # 3 pages (going in; A draws the blaster; save often), the way in, 2 pages inside;
+                           # menu MOVE / LOOK / INVESTIGATE / LISTEN / POSSESSIONS / USE METAL GEAR
+tap 1                      # MOVE (ADVANCE / EXIT)
+tap 1                      # ADVANCE
+tap 4                      # 1 page, then the next room (rubble, a figure) with portraits and no text box
+wait 220                   # menu MOVE ... USE METAL GEAR, cursor MOVE; MOVE offers ADVANCE / RETREAT
+
+# Deeper into the factory: two more rooms, then the figure on the floor.
+sel                        # MOVE (ADVANCE / RETREAT)
+tap 7                      # ADVANCE: 2 pages, the next room; MOVE, ADVANCE: 1 page, then a figure on the floor
+wait 220                   # menu MOVE / LOOK / LISTEN / POSSESSIONS / USE METAL GEAR (no INVESTIGATE yet)
+nav DOWN
+sel                        # LOOK (BODY / GROUND)
+tap 1                      # BODY
+tap 4                      # close-up (no text box), 2 pages
+wait 220                   # menu gains INVESTIGATE; cursor on LOOK
+nav DOWN
+sel                        # INVESTIGATE (GIBSON / MOTION DETECTOR; GIBSON opens CORPSE / CLOTHING)
+tap 30                     # GIBSON>CORPSE 3 pages, again 1 (RIGHT HAND appears), a third time a portrait scene
+                           # (6 taps, INVESTIGATE gains ORGANIC COMPOUNDS), a fourth 1 (CORPSE drops out);
+                           # GIBSON>CLOTHING 1 (KEY), again 1 (SCRAP OF PAPER)
+wait 220                   # menu, cursor INVESTIGATE; list GIBSON / ORGANIC COMPOUNDS / KEY / SCRAP OF PAPER / MOTION DETECTOR
+sel                        # INVESTIGATE
+sel                        # GIBSON (CLOTHING / RIGHT HAND)
+nav DOWN
+sel                        # RIGHT HAND
+tap 2                      # 2 pages; INVESTIGATE gains HAIR and SKIN SAMPLE
+wait 220                   # menu, cursor INVESTIGATE; list GIBSON / HAIR / SKIN SAMPLE / ORGANIC COMPOUNDS / KEY /
+                           # SCRAP OF PAPER / MOTION DETECTOR
+sel                        # INVESTIGATE
+nav DOWN DOWN DOWN
+sel                        # ORGANIC COMPOUNDS
+tap 8                      # analysis on Metal Gear's screen (no text box)
+wait 220                   # menu, cursor INVESTIGATE
+sel                        # INVESTIGATE
+nav DOWN
+sel                        # HAIR
+tap 13                     # analysis (no text box)
+wait 220                   # menu, cursor INVESTIGATE
+sel                        # INVESTIGATE
+nav DOWN DOWN
+sel                        # SKIN SAMPLE
+tap 13                     # analysis (no text box), then 1 page
+wait 220
+sel                        # INVESTIGATE
+nav DOWN DOWN DOWN DOWN
+sel                        # KEY
+tap 1
+wait 220                   # menu, cursor INVESTIGATE
