@@ -335,5 +335,21 @@ A build pass along the route as far as the second factory room, with C taps
 continuing to frame 120000, ran clean: 6 rounds, all 1,166 input events
 applied, ending on the instruction budget with no typed stop.
 
+| REPORT ANALYSIS RESULTS: HAIR, SKIN STRUCTURE, ORGANIC COMPOUNDS | 2, 2, 3; no event |
+| RETREAT twice, LOOK LITTLE JOHN | 1 |
+| INVESTIGATE LITTLE JOHN | 4; adds MEMORY CHIP |
+| INVESTIGATE MEMORY CHIP | cutscene, 3 taps |
+| ADVANCE twice back to Gibson | Metal Gear suggests searching his belongings |
+| LOOK GROUND, BLASTER, KEY | 1, 3, 3 (Metal Gear stores the key) |
+| INVESTIGATE SCRAP OF PAPER, then LOOK SCRAP OF PAPER | 1; 3 (Metal Gear stores it), then something runs across a doorway |
+| ADVANCE | 3 at the dead end; menu LOOK, INVESTIGATE, LISTEN, POSSESSIONS, USE METAL GEAR (no MOVE) |
+| LOOK FRONT | 1 (a cave-in); INVESTIGATE offers FRONT, DIRT AND SAND |
+
+The gates in this stretch were hard to find by probing alone. The doorway
+event needs the key and the scrap of paper stored as evidence, and storing the
+scrap needs INVESTIGATE before LOOK. The order came from the Let's Play
+Archive's screenshot LP of the Sega CD version, then each step was confirmed by
+replay.
+
 Inside the factory Metal Gear says the A button draws the blaster, so a
 shooting scene is near.

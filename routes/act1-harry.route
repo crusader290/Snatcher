@@ -1,4 +1,4 @@
-# Snatcher (US Sega CD) Act 1: title -> lobby -> Chief's office (Junker ID) -> Engineering -> Detective's Room -> Computer Room -> Shooting Range -> Harry (Metal Gear, blaster) -> Turbocycle -> factory ruins -> inside the factory.
+# Snatcher (US Sega CD) Act 1: title -> lobby -> Chief's office (Junker ID) -> Engineering -> Detective's Room -> Computer Room -> Shooting Range -> Harry (Metal Gear, blaster) -> Turbocycle -> factory ruins -> inside the factory -> Gibson -> the cave-in.
 at 3400:3:START            # title: Start opens OPTIONS
 at 3600:3:DOWN
 at 3640:3:DOWN
@@ -260,3 +260,100 @@ nav DOWN DOWN DOWN DOWN
 sel                        # KEY
 tap 1
 wait 220                   # menu, cursor INVESTIGATE
+nav DOWN DOWN DOWN
+sel                        # USE METAL GEAR (VIDEOPHONE / SAVE / REPORT ANALYSIS RESULTS)
+nav DOWN DOWN
+sel                        # REPORT ANALYSIS RESULTS (HAIR / SKIN STRUCTURE / ORGANIC COMPOUNDS)
+sel                        # HAIR
+tap 2
+wait 220                   # menu, cursor USE METAL GEAR
+sel
+nav DOWN DOWN
+sel
+nav DOWN
+sel                        # SKIN STRUCTURE
+tap 2
+wait 220
+sel
+nav DOWN DOWN
+sel
+nav DOWN DOWN
+sel                        # ORGANIC COMPOUNDS
+tap 3
+wait 220                   # menu, cursor USE METAL GEAR
+
+# Back to Little John: RETREAT twice to the rubble room.
+nav DOWN                   # MOVE (the cursor wraps from USE METAL GEAR)
+sel
+nav DOWN
+sel                        # RETREAT
+tap 1                      # 1 page; the pipe room
+wait 220
+sel                        # MOVE
+nav DOWN
+sel                        # RETREAT
+tap 1                      # 1 page; the rubble room
+wait 220
+nav DOWN
+sel                        # LOOK
+nav DOWN DOWN DOWN
+sel                        # LITTLE JOHN
+tap 1                      # close-up, 1 page
+wait 220                   # menu, cursor LOOK
+nav DOWN
+sel                        # INVESTIGATE (CEILING / GROUND / AREA / LITTLE JOHN / MOTION DETECTOR)
+nav DOWN DOWN DOWN
+sel                        # LITTLE JOHN
+tap 4                      # 4 pages: his memory may be intact; adds MEMORY CHIP
+wait 220                   # menu, cursor INVESTIGATE
+sel                        # INVESTIGATE
+nav DOWN DOWN DOWN DOWN
+sel                        # MEMORY CHIP
+tap 3                      # Metal Gear takes the chip (no text box)
+wait 220                   # menu, cursor INVESTIGATE
+
+# Forward again to Gibson: Metal Gear now suggests searching his belongings.
+nav UP UP
+sel                        # MOVE
+tap 7                      # ADVANCE, 1 page, the pipe room; MOVE, ADVANCE, 1 page, then 2 pages
+wait 220                   # menu MOVE / LOOK / INVESTIGATE / LISTEN / POSSESSIONS / USE METAL GEAR, cursor MOVE
+
+# Gibson's belongings: LOOK GROUND, BLASTER and KEY, then INVESTIGATE and LOOK the scrap of paper.
+nav DOWN
+sel                        # LOOK (CORPSE / GROUND / KEY / SCRAP OF PAPER)
+nav DOWN
+sel                        # GROUND
+tap 1                      # adds BLASTER
+wait 220
+sel
+nav DOWN DOWN
+sel                        # BLASTER
+tap 3
+wait 220
+sel
+nav DOWN DOWN DOWN
+sel                        # KEY: Metal Gear stores it
+tap 3
+wait 220
+nav DOWN
+sel                        # INVESTIGATE
+nav UP UP                  # wraps to SCRAP OF PAPER (second from the bottom)
+sel
+tap 1
+wait 220
+nav UP
+sel                        # LOOK (CORPSE / GROUND / BLASTER / SCRAP OF PAPER)
+nav UP                     # wraps to SCRAP OF PAPER
+sel
+tap 7                      # 3 pages (Metal Gear stores the note), then something runs across a doorway
+wait 220                   # menu, cursor LOOK
+
+# The dead end: the Snatchers have vanished behind a cave-in.
+nav UP
+sel                        # MOVE
+tap 4                      # ADVANCE, 1 page, then 2 at the dead end; menu LOOK / INVESTIGATE / LISTEN / POSSESSIONS /
+                           # USE METAL GEAR (no MOVE)
+tap 1                      # LOOK (FRONT)
+tap 1                      # FRONT
+tap 1                      # 1 page: blocked by a cave-in
+wait 220                   # menu, cursor LOOK; INVESTIGATE offers FRONT / DIRT AND SAND
